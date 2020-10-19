@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		94B36606253B3B0600187E43 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 94B36605253B3B0600187E43 /* main.m */; };
+		B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,6 +24,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MidiMapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.debug.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.debug.xcconfig"; sourceTree = "<group>"; };
+		94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.release.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.release.xcconfig"; sourceTree = "<group>"; };
 		94B36602253B3B0600187E43 /* MidiMapper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MidiMapper; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B36605253B3B0600187E43 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -32,17 +36,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8346919228C6B14A35B1960C /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */,
+				94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		94B365F9253B3B0600187E43 = {
 			isa = PBXGroup;
 			children = (
 				94B36604253B3B0600187E43 /* MidiMapper */,
 				94B36603253B3B0600187E43 /* Products */,
+				94BE0FDD253CBDB500F281ED /* Frameworks */,
+				8346919228C6B14A35B1960C /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -62,6 +78,14 @@
 			path = MidiMapper;
 			sourceTree = "<group>";
 		};
+		94BE0FDD253CBDB500F281ED /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -69,6 +93,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 94B36609253B3B0600187E43 /* Build configuration list for PBXNativeTarget "MidiMapper" */;
 			buildPhases = (
+				04E1F095CCFB4F9DCA85BAE7 /* [CP] Check Pods Manifest.lock */,
 				94B365FE253B3B0600187E43 /* Sources */,
 				94B365FF253B3B0600187E43 /* Frameworks */,
 				94B36600253B3B0600187E43 /* CopyFiles */,
@@ -93,6 +118,7 @@
 				TargetAttributes = {
 					94B36601253B3B0600187E43 = {
 						CreatedOnToolsVersion = 11.5;
+						LastSwiftMigration = 1150;
 					};
 				};
 			};
@@ -113,6 +139,31 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		04E1F095CCFB4F9DCA85BAE7 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MidiMapper-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		94B365FE253B3B0600187E43 /* Sources */ = {
@@ -237,17 +288,36 @@
 		};
 		94B3660A253B3B0600187E43 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MidiMapper/MidiMapper-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		94B3660B253B3B0600187E43 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MidiMapper/MidiMapper-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
