@@ -3,10 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */; };
+		943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */; };
+		943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B56412C05D7BF00D88264 /* MIDIActionsManager.m */; };
 		94B36606253B3B0600187E43 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 94B36605253B3B0600187E43 /* main.m */; };
 		B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */; };
 /* End PBXBuildFile section */
@@ -26,7 +29,16 @@
 /* Begin PBXFileReference section */
 		113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MidiMapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.debug.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.debug.xcconfig"; sourceTree = "<group>"; };
+		941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
+		941067BA253EFACE001CDC32 /* Spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Spotify.h; sourceTree = "<group>"; };
 		94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.release.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.release.xcconfig"; sourceTree = "<group>"; };
+		943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MIDIControllerManager.m; sourceTree = "<group>"; };
+		943B563F2C05D2E700D88264 /* MIDIControllerManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MIDIControllerManager.h; sourceTree = "<group>"; };
+		943B56402C05D74800D88264 /* MIDIActionsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MIDIActionsManager.h; sourceTree = "<group>"; };
+		943B56412C05D7BF00D88264 /* MIDIActionsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MIDIActionsManager.m; sourceTree = "<group>"; };
+		943B56462C072CD100D88264 /* com.nickpeirson.MidiMapper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.nickpeirson.MidiMapper.plist; sourceTree = "<group>"; };
+		943B56472C077A9F00D88264 /* install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install.sh; sourceTree = "<group>"; };
+		943B56482C07818600D88264 /* toggle-midimapper.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "toggle-midimapper.sh"; sourceTree = "<group>"; };
 		94B36602253B3B0600187E43 /* MidiMapper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MidiMapper; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B36605253B3B0600187E43 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -37,6 +49,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */,
+				941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,6 +68,9 @@
 		94B365F9253B3B0600187E43 = {
 			isa = PBXGroup;
 			children = (
+				943B56482C07818600D88264 /* toggle-midimapper.sh */,
+				943B56472C077A9F00D88264 /* install.sh */,
+				943B56462C072CD100D88264 /* com.nickpeirson.MidiMapper.plist */,
 				94B36604253B3B0600187E43 /* MidiMapper */,
 				94B36603253B3B0600187E43 /* Products */,
 				94BE0FDD253CBDB500F281ED /* Frameworks */,
@@ -73,7 +89,12 @@
 		94B36604253B3B0600187E43 /* MidiMapper */ = {
 			isa = PBXGroup;
 			children = (
+				941067BA253EFACE001CDC32 /* Spotify.h */,
 				94B36605253B3B0600187E43 /* main.m */,
+				943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */,
+				943B563F2C05D2E700D88264 /* MIDIControllerManager.h */,
+				943B56402C05D74800D88264 /* MIDIActionsManager.h */,
+				943B56412C05D7BF00D88264 /* MIDIActionsManager.m */,
 			);
 			path = MidiMapper;
 			sourceTree = "<group>";
@@ -81,6 +102,7 @@
 		94BE0FDD253CBDB500F281ED /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */,
 				113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */,
 			);
 			name = Frameworks;
@@ -96,6 +118,7 @@
 				04E1F095CCFB4F9DCA85BAE7 /* [CP] Check Pods Manifest.lock */,
 				94B365FE253B3B0600187E43 /* Sources */,
 				94B365FF253B3B0600187E43 /* Frameworks */,
+				943B56432C072AD000D88264 /* ShellScript */,
 				94B36600253B3B0600187E43 /* CopyFiles */,
 			);
 			buildRules = (
@@ -113,7 +136,8 @@
 		94B365FA253B3B0600187E43 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1150;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1540;
 				ORGANIZATIONNAME = "Nick Peirson";
 				TargetAttributes = {
 					94B36601253B3B0600187E43 = {
@@ -163,6 +187,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		943B56432C072AD000D88264 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\n\n# Check for the \"Install\" build configuration\nif [ \"${CONFIGURATION}\" = \"Release & Install\" ]; then\n    # Paths\n    BUILD_DIR=\"${BUILT_PRODUCTS_DIR}\"\n    EXECUTABLE_PATH=\"${BUILD_DIR}/${EXECUTABLE_NAME}\"\n    DEST_DIR=\"/usr/local/bin\"\n    PLIST_SRC=\"${SRCROOT}/com.nickpeirson.MidiMapper.plist\"\n    PLIST_DEST=\"$HOME/Library/LaunchAgents/com.nickpeirson.MidiMapper.plist\"\n\n    # Copy the executable\n    echo \"Copying executable to ${DEST_DIR}\"\n    cp \"${EXECUTABLE_PATH}\" \"${DEST_DIR}\"\n\n    # Copy the plist file\n    echo \"Copying plist to ${PLIST_DEST}\"\n    cp \"${PLIST_SRC}\" \"${PLIST_DEST}\"\n\n    # Provide feedback\n    echo \"Install complete.\"\nelse\n    echo \"Not an Install build. Skipping install step.\"\nfi\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -170,7 +212,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */,
 				94B36606253B3B0600187E43 /* main.m in Sources */,
+				943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,6 +247,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -210,9 +255,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -261,6 +308,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -268,9 +316,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -292,6 +342,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -310,6 +361,7 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
