@@ -5,6 +5,5 @@
 @property (nonatomic, strong) NSString *bridgeIPAddress;
 
 - (void)setBrightness:(NSInteger)brightness;
-- (void)discoverBridge;
 
 @end
