@@ -7,6 +7,7 @@
 //
 
 // MIDIActionsManager.m
+#import "HueAPI.h"
 #import "MIDIActionsManager.h"
 
 double const SCALE_FACTOR = 0.787;
@@ -21,6 +22,8 @@ NSString *const TRACK_BUTTON_NEXT_PRESSED = @"67";
 
 NSString *const SLIDER_0_CONTROLS = @"0";
 NSString *const SLIDER_1_CONTROLS = @"1";
+NSString *const SLIDER_5_CONTROLS = @"5";
+NSString *const SLIDER_6_CONTROLS = @"6";
 NSString *const SLIDER_7_CONTROLS = @"7";
 NSString *const SLIDER_M_BUTTON_PRESSED = @"66";
 NSString *const SLIDER_M_BUTTON_RELEASED = @"2";
@@ -36,6 +39,7 @@ NSString *const SLIDER_M_BUTTON_RELEASED = @"2";
     NSString *currentControl;
     UInt8 currentControlId;
     SpotifyApplication *spotifyApp;
+    HueAPI *hueAPI;
 }
 
 - (instancetype)init {
@@ -43,6 +47,7 @@ NSString *const SLIDER_M_BUTTON_RELEASED = @"2";
     if (self) {
         spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
         scriptCache = [NSMutableDictionary dictionaryWithCapacity:200];
+        hueAPI = [[HueAPI alloc] init];
         [self initMaps];
     }
     return self;
@@ -130,7 +135,8 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
 
     sliderActions = @{
         SLIDER_0_CONTROLS: ^(UInt8 volume){ [self scriptAction:[NSString stringWithFormat:@"set volume output volume %d", (int)(volume * SCALE_FACTOR)]]; },
-        SLIDER_1_CONTROLS: ^(UInt8 volume){ [self->spotifyApp setSoundVolume:(NSInteger)(volume * SCALE_FACTOR)]; }
+        SLIDER_1_CONTROLS: ^(UInt8 volume){ [self->spotifyApp setSoundVolume:(NSInteger)(volume * SCALE_FACTOR)]; },
+        SLIDER_5_CONTROLS: ^(UInt8 volume){ [self->hueAPI setBrightness:(NSInteger)(volume * SCALE_FACTOR)]; }
     };
 
     currentControl = nil;
