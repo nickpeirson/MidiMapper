@@ -6,6 +6,8 @@
 
 @implementation HueAPI {
     HueBridgeDiscovery *bridgeDiscovery;
+    BOOL isRequestInProgress;
+    NSNumber *pendingBrightness;
 }
 
 - (instancetype)init {
@@ -19,6 +21,12 @@
 }
 
 - (void)setBrightness:(NSInteger)brightness {
+    if (isRequestInProgress) {
+        pendingBrightness = @(brightness);
+        return;
+    }
+    isRequestInProgress = YES;
+
     NSString *bridgeIP = [self getBridgeIPAddress];
     if (!bridgeIP) {
         NSLog(@"Bridge IP address not found.");
@@ -57,6 +65,12 @@
             NSLog(@"Error setting brightness: %@", error.localizedDescription);
         } else {
             NSLog(@"Brightness set to %ld", (long)brightness);
+        }
+        isRequestInProgress = NO;
+        if (pendingBrightness) {
+            NSInteger newBrightness = [pendingBrightness integerValue];
+            pendingBrightness = nil;
+            [self setBrightness:newBrightness];
         }
     }];
 
