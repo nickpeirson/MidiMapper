@@ -20,7 +20,7 @@
     return self;
 }
 
-- (void)setBrightness:(NSInteger)brightness {
+- (void)setBrightness:(NSInteger)brightness forResourceType:(NSString *)resourceType resourceID:(NSString *)resourceID {
     if (isRequestInProgress) {
         pendingBrightness = @(brightness);
         return;
@@ -33,7 +33,7 @@
         return;
     }
 
-    NSString *urlString = [NSString stringWithFormat:@"https://%@/clip/v2/resource/grouped_light/1d70a073-d47a-4e02-931c-a35db2a8bf1e", bridgeIP];
+    NSString *urlString = [NSString stringWithFormat:@"https://%@/clip/v2/resource/%@/%@", bridgeIP, resourceType, resourceID];
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"PUT";
@@ -70,7 +70,7 @@
         if (pendingBrightness) {
             NSInteger newBrightness = [pendingBrightness integerValue];
             pendingBrightness = nil;
-            [self setBrightness:newBrightness];
+            [self setBrightness:newBrightness forResourceType:resourceType resourceID:resourceID];
         }
     }];
 
