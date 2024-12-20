@@ -64,15 +64,10 @@
         return;
     }
     NSError *error = nil;
-    self->connectionToken = [[MIKMIDIDeviceManager sharedDeviceManager] connectDevice:device error:&error eventHandler:^(MIKMIDISourceEndpoint *source, NSArray<MIKMIDIControlChangeCommand *> *commands) {
-        for (MIKMIDIControlChangeCommand *command in commands) {
-            if (!command.isFourteenBitCommand) {
-                [self->actionsManager mapControlToAction:command];
-                continue;
-            }
-            [self->actionsManager setControl:command.commandForMostSignificantBits];
-            [self->actionsManager mapControlToAction:command.commandForLeastSignificantBits];
-        }
+    self->connectionToken = [[MIKMIDIDeviceManager sharedDeviceManager] connectDevice:device
+                                                                               error:&error
+                                                                        eventHandler:^(MIKMIDISourceEndpoint *source, NSArray<MIKMIDIControlChangeCommand *> *commands) {
+        [self->actionsManager handleMIDIControlChangeCommands:commands];
     }];
     printf("Connecting Device(s):\n");
     for (id token in self->connectionToken) {

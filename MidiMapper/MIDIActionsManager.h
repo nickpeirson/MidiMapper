@@ -19,6 +19,7 @@
 - (void)initMaps;
 - (void)setControl:(MIKMIDIControlChangeCommand *)command;
 - (void)mapControlToAction:(MIKMIDICommand *)command;
+- (void)handleMIDIControlChangeCommands:(NSArray<MIKMIDIControlChangeCommand*> *)commands;
 
 @end
 
