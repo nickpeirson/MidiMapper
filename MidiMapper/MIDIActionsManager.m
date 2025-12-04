@@ -55,6 +55,7 @@ NSString *const KNOB_DECREMENT = @"1";
     UInt8 currentControlId;
     SpotifyApplication *spotifyApp;
     HueAPI *hueAPI;
+    dispatch_queue_t actionQueue;   // NEW: serial queue for executing actions
 }
 
 - (instancetype)init {
@@ -63,6 +64,10 @@ NSString *const KNOB_DECREMENT = @"1";
         spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
         scriptCache = [NSMutableDictionary dictionaryWithCapacity:200];
         hueAPI = [[HueAPI alloc] init];
+        
+        // NEW: serial queue so actions cannot block the MIDI callback
+        actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_SERIAL);
+        
         [self initMaps];
     }
     return self;
@@ -86,11 +91,18 @@ NSString* byteToStr(UInt8 byte)
     (void) [theScript executeAndReturnError: &errorDict];
 }
 
-static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSString *, id> *sliderActions, NSString *currentControl) {
+static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSString *, id> *sliderActions, NSString *currentControl, dispatch_queue_t actionQueue) {
     void (^sliderAction)(UInt8) = [sliderActions objectForKey:currentControl];
     if (sliderAction == nil) return;
 
-    sliderAction(command.controllerValue);
+    UInt8 value = command.controllerValue;
+    
+    // NEW: run the slider action on the serial actionQueue
+    dispatch_async(actionQueue, ^{
+        @autoreleasepool {
+            sliderAction(value);
+        }
+    });
 }
 
 - (void)setControl:(MIKMIDIControlChangeCommand *)command {
@@ -100,7 +112,7 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
         return;
     }
     if (command.dataByte1 == currentControlId) {
-        sliderMoved(command, sliderActions, currentControl);
+        sliderMoved(command, sliderActions, currentControl, actionQueue);
         return;
     }
 }
@@ -124,7 +136,12 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
         return;
     }
 
-    action();
+    // NEW: run the mapped action on the serial actionQueue
+    dispatch_async(actionQueue, ^{
+        @autoreleasepool {
+            action();
+        }
+    });
 }
 /*
  Listen for commands then call the appropriate mapper
