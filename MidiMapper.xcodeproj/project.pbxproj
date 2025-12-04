@@ -10,6 +10,8 @@
 		941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */; };
 		943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */; };
 		943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B56412C05D7BF00D88264 /* MIDIActionsManager.m */; };
+		9467EA5D2D143D64005B0B75 /* HueAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = 9467EA5C2D143D64005B0B75 /* HueAPI.m */; };
+		9467EA7A2D1478C4005B0B75 /* HueBridgeDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 9467EA782D1478C4005B0B75 /* HueBridgeDiscovery.m */; };
 		94B36606253B3B0600187E43 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 94B36605253B3B0600187E43 /* main.m */; };
 		B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */; };
 /* End PBXBuildFile section */
@@ -39,6 +41,11 @@
 		943B56462C072CD100D88264 /* com.nickpeirson.MidiMapper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.nickpeirson.MidiMapper.plist; sourceTree = "<group>"; };
 		943B56472C077A9F00D88264 /* install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install.sh; sourceTree = "<group>"; };
 		943B56482C07818600D88264 /* toggle-midimapper.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "toggle-midimapper.sh"; sourceTree = "<group>"; };
+		943B56492C078B9F00D88264 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9467EA5B2D143D64005B0B75 /* HueAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HueAPI.h; sourceTree = "<group>"; };
+		9467EA5C2D143D64005B0B75 /* HueAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HueAPI.m; sourceTree = "<group>"; };
+		9467EA782D1478C4005B0B75 /* HueBridgeDiscovery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HueBridgeDiscovery.m; sourceTree = "<group>"; };
+		9467EA792D1478C4005B0B75 /* HueBridgeDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HueBridgeDiscovery.h; sourceTree = "<group>"; };
 		94B36602253B3B0600187E43 /* MidiMapper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MidiMapper; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B36605253B3B0600187E43 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,6 +75,7 @@
 		94B365F9253B3B0600187E43 = {
 			isa = PBXGroup;
 			children = (
+				943B56492C078B9F00D88264 /* README.md */,
 				943B56482C07818600D88264 /* toggle-midimapper.sh */,
 				943B56472C077A9F00D88264 /* install.sh */,
 				943B56462C072CD100D88264 /* com.nickpeirson.MidiMapper.plist */,
@@ -89,6 +97,10 @@
 		94B36604253B3B0600187E43 /* MidiMapper */ = {
 			isa = PBXGroup;
 			children = (
+				9467EA792D1478C4005B0B75 /* HueBridgeDiscovery.h */,
+				9467EA782D1478C4005B0B75 /* HueBridgeDiscovery.m */,
+				9467EA5B2D143D64005B0B75 /* HueAPI.h */,
+				9467EA5C2D143D64005B0B75 /* HueAPI.m */,
 				941067BA253EFACE001CDC32 /* Spotify.h */,
 				94B36605253B3B0600187E43 /* main.m */,
 				943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */,
@@ -212,9 +224,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9467EA7A2D1478C4005B0B75 /* HueBridgeDiscovery.m in Sources */,
 				943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */,
 				94B36606253B3B0600187E43 /* main.m in Sources */,
 				943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */,
+				9467EA5D2D143D64005B0B75 /* HueAPI.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

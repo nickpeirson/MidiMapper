@@ -40,7 +40,12 @@ NSString *const KNOB_MAX = @"127";
 NSString *const KNOB_INCREMENT = @"65";
 NSString *const KNOB_DECREMENT = @"1";
 
-
+NSString *const HUE_RESOURCE_TYPE_GROUPED_LIGHT = @"grouped_light";
+NSString *const HUE_RESOURCE_TYPE_LIGHT = @"light";
+NSString *const HUE_RESOURCE_ID_OFFICE = @"1d70a073-d47a-4e02-931c-a35db2a8bf1e";
+NSString *const HUE_RESOURCE_ID_OFFICE_LAMP_LEFT = @"192bf44d-0f3c-4ed3-9bca-f31d8ac35227";
+NSString *const HUE_RESOURCE_ID_OFFICE_LAMP_RIGHT = @"2d1e7d28-e998-43b3-93f7-f0d9775f71a9";
+NSString *const HUE_RESOURCE_ID_OFFICE_PENDANT_LIGHT = @"41dbbcd1-0999-422a-ad43-a7c182f0f432";
 
 @implementation MIDIActionsManager {
     NSDictionary *playbackButtonMap;
@@ -172,8 +177,12 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
     };
     
     knob0Map = @{
-        KNOB_MIN:^() { NSLog(@"Knob1 min"); },
-        KNOB_MAX:^() { NSLog(@"Knob1 max"); },
+        KNOB_MIN:^() { 
+            [self->hueAPI setColorTemperature:153 forResourceType:HUE_RESOURCE_TYPE_GROUPED_LIGHT resourceID:HUE_RESOURCE_ID_OFFICE];
+         },
+        KNOB_MAX:^() { 
+            [self->hueAPI setColorTemperature:500 forResourceType:HUE_RESOURCE_TYPE_GROUPED_LIGHT resourceID:HUE_RESOURCE_ID_OFFICE];
+        },
         KNOB_INCREMENT:^() { NSLog(@"Knob1 increment"); },
         KNOB_DECREMENT:^() { NSLog(@"Knob1 decrement"); }
     };
@@ -189,25 +198,25 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
     sliderActions = @{
         SLIDER_0_CONTROLS: ^(UInt8 volume){ [self scriptAction:[NSString stringWithFormat:@"set volume output volume %d", (int)(volume * SLIDER_SCALE_FACTOR)]]; },
         SLIDER_1_CONTROLS: ^(UInt8 volume){ [self->spotifyApp setSoundVolume:(NSInteger)(volume * SLIDER_SCALE_FACTOR)]; },
-        SLIDER_2_CONTROLS: ^(UInt8 volume){
+        SLIDER_2_CONTROLS: ^(UInt8 volume){ // Office lights
             [self->hueAPI setBrightness:(NSInteger)(volume * SLIDER_SCALE_FACTOR)
-                       forResourceType:@"grouped_light"
-                           resourceID:@"1d70a073-d47a-4e02-931c-a35db2a8bf1e"];
+                       forResourceType:HUE_RESOURCE_TYPE_GROUPED_LIGHT
+                           resourceID:HUE_RESOURCE_ID_OFFICE];
         },
         SLIDER_3_CONTROLS: ^(UInt8 volume){ // Office lamp left
             [self->hueAPI setBrightness:(NSInteger)(volume * SLIDER_SCALE_FACTOR)
-                       forResourceType:@"light"
-                           resourceID:@"192bf44d-0f3c-4ed3-9bca-f31d8ac35227"];
+                       forResourceType:HUE_RESOURCE_TYPE_LIGHT
+                           resourceID:HUE_RESOURCE_ID_OFFICE_LAMP_LEFT];
         },
         SLIDER_4_CONTROLS: ^(UInt8 volume){ // Office lamp right
             [self->hueAPI setBrightness:(NSInteger)(volume * SLIDER_SCALE_FACTOR)
-                       forResourceType:@"light"
-                           resourceID:@"2d1e7d28-e998-43b3-93f7-f0d9775f71a9"];
+                       forResourceType:HUE_RESOURCE_TYPE_LIGHT
+                           resourceID:HUE_RESOURCE_ID_OFFICE_LAMP_RIGHT];
         },
-        SLIDER_5_CONTROLS: ^(UInt8 volume){
+        SLIDER_5_CONTROLS: ^(UInt8 volume){ // Office pendant light
             [self->hueAPI setBrightness:(NSInteger)(volume * SLIDER_SCALE_FACTOR)
-                       forResourceType:@"light"
-                           resourceID:@"41dbbcd1-0999-422a-ad43-a7c182f0f432"];
+                       forResourceType:HUE_RESOURCE_TYPE_LIGHT
+                           resourceID:HUE_RESOURCE_ID_OFFICE_PENDANT_LIGHT];
         }
     };
 
