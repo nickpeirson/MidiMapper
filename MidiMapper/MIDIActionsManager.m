@@ -9,6 +9,7 @@
 // MIDIActionsManager.m
 #import "HueAPI.h"
 #import "MIDIActionsManager.h"
+#import <Carbon/Carbon.h>   // for kAENoReply, etc.
 
 double const SLIDER_SCALE_FACTOR = 0.787;
 
@@ -55,18 +56,29 @@ NSString *const KNOB_DECREMENT = @"1";
     UInt8 currentControlId;
     SpotifyApplication *spotifyApp;
     HueAPI *hueAPI;
-    dispatch_queue_t actionQueue;   // NEW: serial queue for executing actions
+    dispatch_queue_t actionQueue;   // concurrent queue for executing actions without blocking
+    NSMutableDictionary<NSString *, NSNumber *> *pendingSliderValues;  // latest value per slider
+    NSMutableDictionary<NSString *, NSNumber *> *sliderUpdateScheduled; // whether update is scheduled
 }
 
 - (instancetype)init {
     self = [super init];
     if (self) {
         spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
+        
+        // NEW: fire-and-forget AppleEvents to Spotify
+        [spotifyApp setSendMode:kAENoReply];
+        [spotifyApp setTimeout:60 * 60];
+        
         scriptCache = [NSMutableDictionary dictionaryWithCapacity:200];
         hueAPI = [[HueAPI alloc] init];
         
-        // NEW: serial queue so actions cannot block the MIDI callback
-        actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_SERIAL);
+        // concurrent queue for executing actions without blocking MIDI callback
+        actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_CONCURRENT);
+        
+        // Throttling state for sliders
+        pendingSliderValues = [NSMutableDictionary dictionary];
+        sliderUpdateScheduled = [NSMutableDictionary dictionary];
         
         [self initMaps];
     }
@@ -80,27 +92,60 @@ NSString* byteToStr(UInt8 byte)
 
 - (void)scriptAction:(NSString *)command
 {
-    NSDictionary* errorDict;
-    
-    NSAppleScript *theScript = [scriptCache objectForKey:command];
-    if (theScript == nil) {
-        theScript = [[NSAppleScript alloc] initWithSource:command];
-        [scriptCache setObject:theScript forKey:command];
+    if (command.length == 0) {
+        return;
     }
-        
-    (void) [theScript executeAndReturnError: &errorDict];
+
+    NSDictionary *errorDict = nil;
+
+    NSAppleScript *theScript = [scriptCache objectForKey:command];
+    if (!theScript) {
+        theScript = [[NSAppleScript alloc] initWithSource:command];
+        if (theScript) {
+            [scriptCache setObject:theScript forKey:command];
+        } else {
+            NSLog(@"Failed to compile AppleScript for command '%@'", command);
+            return;
+        }
+    }
+
+    NSAppleEventDescriptor *result = [theScript executeAndReturnError:&errorDict];
+
+    if (!result && errorDict) {
+        NSLog(@"AppleScript error for command '%@': %@", command, errorDict);
+    }
 }
 
-static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSString *, id> *sliderActions, NSString *currentControl, dispatch_queue_t actionQueue) {
-    void (^sliderAction)(UInt8) = [sliderActions objectForKey:currentControl];
+- (void)sliderMovedForControl:(NSString *)control value:(UInt8)value {
+    void (^sliderAction)(UInt8) = [sliderActions objectForKey:control];
     if (sliderAction == nil) return;
-
-    UInt8 value = command.controllerValue;
     
-    // NEW: run the slider action on the serial actionQueue
-    dispatch_async(actionQueue, ^{
-        @autoreleasepool {
-            sliderAction(value);
+    // Store the latest value (overwrites any pending value)
+    @synchronized (pendingSliderValues) {
+        pendingSliderValues[control] = @(value);
+        
+        // If an update is already scheduled for this slider, let it pick up the new value
+        if ([sliderUpdateScheduled[control] boolValue]) {
+            return;
+        }
+        
+        // Schedule an update
+        sliderUpdateScheduled[control] = @YES;
+    }
+    
+    // Dispatch after a short delay to coalesce rapid updates
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_MSEC)), actionQueue, ^{
+        NSNumber *latestValue;
+        @synchronized (self->pendingSliderValues) {
+            latestValue = self->pendingSliderValues[control];
+            [self->pendingSliderValues removeObjectForKey:control];
+            self->sliderUpdateScheduled[control] = @NO;
+        }
+        
+        if (latestValue) {
+            @autoreleasepool {
+                sliderAction(latestValue.unsignedCharValue);
+            }
         }
     });
 }
@@ -112,7 +157,7 @@ static void sliderMoved(MIKMIDIControlChangeCommand *command, NSDictionary<NSStr
         return;
     }
     if (command.dataByte1 == currentControlId) {
-        sliderMoved(command, sliderActions, currentControl, actionQueue);
+        [self sliderMovedForControl:currentControl value:command.controllerValue];
         return;
     }
 }
