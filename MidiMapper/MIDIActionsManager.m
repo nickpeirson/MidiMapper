@@ -19,6 +19,10 @@ static const uint64_t kInFlightWarningThreshold = 8;
 static const NSTimeInterval kLongActionThresholdMs = 2000.0;
 static const NSTimeInterval kHealthLogIntervalSeconds = 30.0;
 
+// Blocking action protection
+static const NSTimeInterval kBlockingActionTimeoutSeconds = 5.0;
+static const NSTimeInterval kBlockingGroupCooldownSeconds = 5.0;
+
 double const SLIDER_SCALE_FACTOR = 0.787;
 
 NSString *const PLAYBACK_BUTTONS_ID = @"14";
@@ -59,14 +63,17 @@ NSString *const KNOB_DECREMENT = @"1";
     NSDictionary *knob0Map;
     NSDictionary<NSString *, id> *controlToActionMap;
     NSDictionary<NSString *, NSString *> *actionNameMap;  // Maps control:actionId to human-readable name
+    NSDictionary<NSString *, NSString *> *actionGroupMap; // Maps actionName to blocking group (e.g., "spotify", "applescript")
     NSDictionary<NSString *, id> *sliderActions;
     NSDictionary<NSString *, NSString *> *sliderActionNames;  // Maps control to human-readable name
+    NSDictionary<NSString *, NSString *> *sliderActionGroups; // Maps control to blocking group
     NSMutableDictionary<NSString *, NSAppleScript *> *scriptCache;
     NSString *currentControl;
     UInt8 currentControlId;
     SpotifyApplication *spotifyApp;
     HueAPI *hueAPI;
-    dispatch_queue_t actionQueue;   // concurrent queue for executing actions without blocking
+    dispatch_queue_t actionQueue;   // serial queue for bookkeeping and coordination
+    dispatch_queue_t blockingActionQueue;  // concurrent queue for potentially blocking actions
     NSMutableDictionary<NSString *, NSNumber *> *pendingSliderValues;  // latest value per slider
     NSMutableDictionary<NSString *, NSNumber *> *sliderUpdateScheduled; // whether update is scheduled
     
@@ -76,6 +83,12 @@ NSString *const KNOB_DECREMENT = @"1";
     atomic_uint_fast64_t actionsFinished;
     atomic_uint_fast64_t actionsInFlight;
     NSDate *lastHealthLog;
+    
+    // Blocking action protection
+    NSMutableSet<NSString *> *blockingGroupsInFlight;
+    NSMutableDictionary<NSString *, NSDate *> *blockingGroupCooldownUntil;
+    NSMutableDictionary<NSNumber *, NSNumber *> *blockingActionTimedOut;  // eventId -> YES if timed out
+    NSLock *blockingStateLock;
 }
 
 - (instancetype)init {
@@ -90,8 +103,11 @@ NSString *const KNOB_DECREMENT = @"1";
         scriptCache = [NSMutableDictionary dictionaryWithCapacity:200];
         hueAPI = [[HueAPI alloc] init];
         
-        // concurrent queue for executing actions without blocking MIDI callback
-        actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_CONCURRENT);
+        // Serial queue for bookkeeping and coordination
+        actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_SERIAL);
+        
+        // Concurrent queue for potentially blocking actions (Spotify, AppleScript)
+        blockingActionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.blockingActions", DISPATCH_QUEUE_CONCURRENT);
         
         // Throttling state for sliders
         pendingSliderValues = [NSMutableDictionary dictionary];
@@ -103,6 +119,12 @@ NSString *const KNOB_DECREMENT = @"1";
         atomic_store(&actionsFinished, 0);
         atomic_store(&actionsInFlight, 0);
         lastHealthLog = [NSDate date];
+        
+        // Initialize blocking action protection
+        blockingGroupsInFlight = [NSMutableSet set];
+        blockingGroupCooldownUntil = [NSMutableDictionary dictionary];
+        blockingActionTimedOut = [NSMutableDictionary dictionary];
+        blockingStateLock = [[NSLock alloc] init];
         
         [self initMaps];
         
@@ -153,6 +175,174 @@ NSString* byteToStr(UInt8 byte)
     if (durationMs > kLongActionThresholdMs) {
         NSLog(@"[HEALTH] Long action detected: %.1fms (threshold: %.1fms)", durationMs, kLongActionThresholdMs);
     }
+}
+
+#pragma mark - Blocking Action Protection
+
+- (NSString *)blockingGroupForActionName:(NSString *)actionName {
+    return actionGroupMap[actionName];
+}
+
+- (NSString *)blockingGroupForSliderControl:(NSString *)control {
+    return sliderActionGroups[control];
+}
+
+- (BOOL)isBlockingGroup:(NSString *)groupKey {
+    // Groups that are known to potentially block
+    return groupKey != nil;
+}
+
+- (BOOL)canExecuteBlockingGroup:(NSString *)groupKey reason:(NSString **)outReason {
+    if (!groupKey) {
+        return YES;  // Non-blocking action
+    }
+    
+    [blockingStateLock lock];
+    
+    // Check cooldown
+    NSDate *cooldownUntil = blockingGroupCooldownUntil[groupKey];
+    if (cooldownUntil && [[NSDate date] compare:cooldownUntil] == NSOrderedAscending) {
+        [blockingStateLock unlock];
+        if (outReason) {
+            *outReason = [NSString stringWithFormat:@"group '%@' in cooldown until %@", groupKey, cooldownUntil];
+        }
+        return NO;
+    }
+    
+    // Check if already in flight
+    if ([blockingGroupsInFlight containsObject:groupKey]) {
+        [blockingStateLock unlock];
+        if (outReason) {
+            *outReason = [NSString stringWithFormat:@"group '%@' already in flight", groupKey];
+        }
+        return NO;
+    }
+    
+    [blockingStateLock unlock];
+    return YES;
+}
+
+- (void)markBlockingGroupInFlight:(NSString *)groupKey {
+    if (!groupKey) return;
+    
+    [blockingStateLock lock];
+    [blockingGroupsInFlight addObject:groupKey];
+    [blockingStateLock unlock];
+}
+
+- (void)markBlockingGroupFinished:(NSString *)groupKey timedOut:(BOOL)timedOut {
+    if (!groupKey) return;
+    
+    [blockingStateLock lock];
+    [blockingGroupsInFlight removeObject:groupKey];
+    
+    if (timedOut) {
+        // Set cooldown
+        NSDate *cooldownUntil = [NSDate dateWithTimeIntervalSinceNow:kBlockingGroupCooldownSeconds];
+        blockingGroupCooldownUntil[groupKey] = cooldownUntil;
+        NSLog(@"[BLOCKING] Group '%@' timed out, cooldown until %@", groupKey, cooldownUntil);
+    }
+    [blockingStateLock unlock];
+}
+
+- (void)markEventTimedOut:(uint64_t)eventId {
+    [blockingStateLock lock];
+    blockingActionTimedOut[@(eventId)] = @YES;
+    [blockingStateLock unlock];
+}
+
+- (BOOL)isEventTimedOut:(uint64_t)eventId {
+    [blockingStateLock lock];
+    BOOL timedOut = [blockingActionTimedOut[@(eventId)] boolValue];
+    [blockingStateLock unlock];
+    return timedOut;
+}
+
+- (void)clearEventTimedOut:(uint64_t)eventId {
+    [blockingStateLock lock];
+    [blockingActionTimedOut removeObjectForKey:@(eventId)];
+    [blockingStateLock unlock];
+}
+
+/// Execute a potentially blocking action with timeout protection
+- (void)executeBlockingAction:(void (^)(void))actionBlock
+                   actionName:(NSString *)actionName
+                    groupKey:(NSString *)groupKey
+                     context:(ActionContext *)ctx {
+    
+    uint64_t eventId = ctx ? ctx.eventId : 0;
+    NSDate *startTime = [NSDate date];
+    
+    // Mark group as in-flight
+    [self markBlockingGroupInFlight:groupKey];
+    
+    // Schedule timeout on actionQueue
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), actionQueue, ^{
+        [self handleTimeoutForEventId:eventId actionName:actionName groupKey:groupKey context:ctx];
+    });
+    
+    // Execute on blocking queue
+    dispatch_async(blockingActionQueue, ^{
+        [self actionDidStart];
+        
+        if (ctx) {
+            [ctx markStarted];
+        }
+        NSLog(@"%@ START action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey);
+        
+        @autoreleasepool {
+            actionBlock();
+        }
+        
+        NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+        
+        // Check if we already timed out
+        BOOL alreadyTimedOut = [self isEventTimedOut:eventId];
+        [self clearEventTimedOut:eventId];
+        
+        if (alreadyTimedOut) {
+            // Timeout already handled, just log completion
+            NSLog(@"%@ FINISH_LATE action=%@ duration=%.1fms (after timeout)", 
+                  ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+        } else {
+            // Normal completion
+            [self actionDidFinishWithDuration:durationMs];
+            [self markBlockingGroupFinished:groupKey timedOut:NO];
+            
+            if (ctx) {
+                [ctx markFinished];
+            }
+            NSLog(@"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+        }
+    });
+}
+
+- (void)handleTimeoutForEventId:(uint64_t)eventId
+                     actionName:(NSString *)actionName
+                       groupKey:(NSString *)groupKey
+                        context:(ActionContext *)ctx {
+    
+    // Check if still in flight
+    [blockingStateLock lock];
+    BOOL stillInFlight = [blockingGroupsInFlight containsObject:groupKey];
+    [blockingStateLock unlock];
+    
+    if (!stillInFlight) {
+        // Already finished normally
+        return;
+    }
+    
+    // Mark as timed out
+    [self markEventTimedOut:eventId];
+    [self markBlockingGroupFinished:groupKey timedOut:YES];
+    [self actionDidFinishWithDuration:kBlockingActionTimeoutSeconds * 1000.0];
+    
+    if (ctx) {
+        [ctx markTimeout];
+    }
+    
+    NSLog(@"%@ TIMEOUT action=%@ group=%@ (%.1fs)", 
+          ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey, kBlockingActionTimeoutSeconds);
 }
 
 #pragma mark - AppleScript Backend
@@ -220,6 +410,8 @@ NSString* byteToStr(UInt8 byte)
     if (sliderAction == nil) return;
     
     NSString *actionName = sliderActionNames[control] ?: @"UnknownSlider";
+    NSString *groupKey = [self blockingGroupForSliderControl:control];
+    
     if (ctx) {
         ctx.controlKey = control;
         ctx.matchedActionName = actionName;
@@ -262,17 +454,76 @@ NSString* byteToStr(UInt8 byte)
         }
         
         if (latestValue) {
-            [self actionDidStart];
-            NSDate *startTime = [NSDate date];
+            UInt8 val = latestValue.unsignedCharValue;
             
-            @autoreleasepool {
-                sliderAction(latestValue.unsignedCharValue);
+            // Check blocking group protection for sliders
+            if (groupKey) {
+                NSString *skipReason = nil;
+                if (![self canExecuteBlockingGroup:groupKey reason:&skipReason]) {
+                    [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                                  category:@"BLOCKING"
+                                                 dedupeKey:[NSString stringWithFormat:@"SliderSkip:%@", groupKey]
+                                                    format:@"[slider=%@] SKIP group=%@ reason=%@", control, groupKey, skipReason];
+                    return;
+                }
+                
+                // Execute as blocking action
+                [self markBlockingGroupInFlight:groupKey];
+                
+                // Schedule timeout
+                uint64_t eventId = ctx ? ctx.eventId : 0;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), self->actionQueue, ^{
+                    [self handleSliderTimeoutForControl:control groupKey:groupKey eventId:eventId];
+                });
+                
+                dispatch_async(self->blockingActionQueue, ^{
+                    [self actionDidStart];
+                    NSDate *startTime = [NSDate date];
+                    
+                    @autoreleasepool {
+                        sliderAction(val);
+                    }
+                    
+                    NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+                    
+                    BOOL alreadyTimedOut = [self isEventTimedOut:eventId];
+                    [self clearEventTimedOut:eventId];
+                    
+                    if (!alreadyTimedOut) {
+                        [self actionDidFinishWithDuration:durationMs];
+                        [self markBlockingGroupFinished:groupKey timedOut:NO];
+                    }
+                });
+            } else {
+                // Non-blocking slider action
+                [self actionDidStart];
+                NSDate *startTime = [NSDate date];
+                
+                @autoreleasepool {
+                    sliderAction(val);
+                }
+                
+                NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+                [self actionDidFinishWithDuration:durationMs];
             }
-            
-            NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
-            [self actionDidFinishWithDuration:durationMs];
         }
     });
+}
+
+- (void)handleSliderTimeoutForControl:(NSString *)control groupKey:(NSString *)groupKey eventId:(uint64_t)eventId {
+    [blockingStateLock lock];
+    BOOL stillInFlight = [blockingGroupsInFlight containsObject:groupKey];
+    [blockingStateLock unlock];
+    
+    if (!stillInFlight) {
+        return;
+    }
+    
+    [self markEventTimedOut:eventId];
+    [self markBlockingGroupFinished:groupKey timedOut:YES];
+    [self actionDidFinishWithDuration:kBlockingActionTimeoutSeconds * 1000.0];
+    
+    NSLog(@"[slider=%@] TIMEOUT group=%@ (%.1fs)", control, groupKey, kBlockingActionTimeoutSeconds);
 }
 
 - (void)sliderMovedForControl:(NSString *)control value:(UInt8)value {
@@ -341,37 +592,59 @@ NSString* byteToStr(UInt8 byte)
 
     // Found an action
     NSString *actionName = actionNameMap[actionKey] ?: @"UnknownAction";
+    NSString *groupKey = [self blockingGroupForActionName:actionName];
+    
     if (ctx) {
         ctx.actionFound = YES;
         ctx.matchedActionName = actionName;
-        [ctx markEnqueued];
     }
     
+    // Check if this is a blocking action and if we can execute it
+    if (groupKey) {
+        NSString *skipReason = nil;
+        if (![self canExecuteBlockingGroup:groupKey reason:&skipReason]) {
+            [[DedupingLogger shared] logfWithLevel:DLogLevelWarn
+                                          category:@"BLOCKING"
+                                         dedupeKey:[NSString stringWithFormat:@"Skip:%@", groupKey]
+                                            format:@"%@ SKIP action=%@ reason=%@",
+                                                   ctx ? [ctx logPrefix] : @"[ev=?]", actionName, skipReason];
+            return;
+        }
+    }
+    
+    if (ctx) {
+        [ctx markEnqueued];
+    }
     [self actionWillEnqueue];
-    NSLog(@"%@ ENQUEUE action=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName);
+    NSLog(@"%@ ENQUEUE action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey ?: @"none");
 
-    // Run the mapped action on the concurrent actionQueue
-    dispatch_async(actionQueue, ^{
-        [self actionDidStart];
-        NSDate *startTime = [NSDate date];
-        
-        if (ctx) {
-            [ctx markStarted];
-        }
-        NSLog(@"%@ START action=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName);
-        
-        @autoreleasepool {
-            action();
-        }
-        
-        NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
-        [self actionDidFinishWithDuration:durationMs];
-        
-        if (ctx) {
-            [ctx markFinished];
-        }
-        NSLog(@"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
-    });
+    if (groupKey) {
+        // Blocking action - use protected execution
+        [self executeBlockingAction:action actionName:actionName groupKey:groupKey context:ctx];
+    } else {
+        // Non-blocking action - run directly on actionQueue
+        dispatch_async(actionQueue, ^{
+            [self actionDidStart];
+            NSDate *startTime = [NSDate date];
+            
+            if (ctx) {
+                [ctx markStarted];
+            }
+            NSLog(@"%@ START action=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName);
+            
+            @autoreleasepool {
+                action();
+            }
+            
+            NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+            [self actionDidFinishWithDuration:durationMs];
+            
+            if (ctx) {
+                [ctx markFinished];
+            }
+            NSLog(@"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+        });
+    }
 }
 /*
  Listen for commands then call the appropriate mapper
@@ -497,6 +770,26 @@ NSString* byteToStr(UInt8 byte)
         SLIDER_3_CONTROLS: @"Hue:OfficeLampLeft",
         SLIDER_4_CONTROLS: @"Hue:OfficeLampRight",
         SLIDER_5_CONTROLS: @"Hue:Light5",
+    };
+    
+    // Map action keys to blocking groups (for timeout/circuit-breaker protection)
+    actionGroupMap = @{
+        [NSString stringWithFormat:@"%@:%@", PLAYBACK_BUTTONS_ID, PLAYBACK_BUTTON_PAUSE_PRESSED]: @"spotify",
+        [NSString stringWithFormat:@"%@:%@", PLAYBACK_BUTTONS_ID, PLAYBACK_BUTTON_PLAY_PRESSED]: @"spotify",
+        [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_NEXT_PRESSED]: @"spotify",
+        [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_PREV_PRESSED]: @"spotify",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"applescript",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"applescript",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"applescript",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"applescript",
+        // Knob actions are non-blocking (just NSLog)
+    };
+    
+    // Map slider controls to blocking groups
+    sliderActionGroups = @{
+        SLIDER_0_CONTROLS: @"applescript",   // System volume via AppleScript
+        SLIDER_1_CONTROLS: @"spotify",       // Spotify volume via ScriptingBridge
+        // Hue sliders (2-5) are non-blocking (async HTTP), no entry needed
     };
 
     currentControl = nil;
