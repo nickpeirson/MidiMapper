@@ -11,6 +11,7 @@
 #import "MIDIActionsManager.h"
 #import "DedupingLogger.h"
 #import "ActionContext.h"
+#import "SystemVolumeController.h"
 #import <Carbon/Carbon.h>   // for kAENoReply, etc.
 #import <stdatomic.h>
 
@@ -343,6 +344,35 @@ NSString* byteToStr(UInt8 byte)
     
     NSLog(@"%@ TIMEOUT action=%@ group=%@ (%.1fs)", 
           ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey, kBlockingActionTimeoutSeconds);
+}
+
+#pragma mark - CoreAudio Volume Control
+
+- (void)setSystemVolumeFromMidiValue:(UInt8)midiValue {
+    // Convert MIDI value (0-127) to percentage (0-100), applying scale factor
+    float percent = (float)midiValue * SLIDER_SCALE_FACTOR;
+    
+    NSError *error = nil;
+    BOOL success = [SystemVolumeController setOutputVolumePercent:percent error:&error];
+    
+    if (!success) {
+        [[DedupingLogger shared] logfWithLevel:DLogLevelError
+                                      category:@"CoreAudio"
+                                     dedupeKey:@"VolumeSetFailed"
+                                        format:@"[CoreAudio] Failed to set volume to %.1f%%: %@", percent, error];
+    }
+}
+
+- (void)setSystemMuted:(BOOL)muted {
+    NSError *error = nil;
+    BOOL success = [SystemVolumeController setMuted:muted error:&error];
+    
+    if (!success) {
+        [[DedupingLogger shared] logfWithLevel:DLogLevelError
+                                      category:@"CoreAudio"
+                                     dedupeKey:@"MuteSetFailed"
+                                        format:@"[CoreAudio] Failed to set mute=%@: %@", muted ? @"YES" : @"NO", error];
+    }
 }
 
 #pragma mark - AppleScript Backend
@@ -697,13 +727,13 @@ NSString* byteToStr(UInt8 byte)
     };
 
     slider0ButtonMap = @{
-        SLIDER_M_BUTTON_PRESSED:^(){ [self scriptAction:@"set volume with output muted"]; },
-        SLIDER_M_BUTTON_RELEASED:^(){ [self scriptAction:@"set volume without output muted"]; },
+        SLIDER_M_BUTTON_PRESSED:^(){ [self setSystemMuted:YES]; },
+        SLIDER_M_BUTTON_RELEASED:^(){ [self setSystemMuted:NO]; },
     };
 
     slider1ButtonMap = @{
-        SLIDER_M_BUTTON_PRESSED:^(){ [self scriptAction:@"set volume with output muted"]; },
-        SLIDER_M_BUTTON_RELEASED:^(){ [self scriptAction:@"set volume without output muted"]; },
+        SLIDER_M_BUTTON_PRESSED:^(){ [self setSystemMuted:YES]; },
+        SLIDER_M_BUTTON_RELEASED:^(){ [self setSystemMuted:NO]; },
     };
     
     knob0Map = @{
@@ -738,7 +768,7 @@ NSString* byteToStr(UInt8 byte)
     };
 
     sliderActions = @{
-        SLIDER_0_CONTROLS: ^(UInt8 volume){ [self scriptAction:[NSString stringWithFormat:@"set volume output volume %d", (int)(volume * SLIDER_SCALE_FACTOR)]]; },
+        SLIDER_0_CONTROLS: ^(UInt8 volume){ [self setSystemVolumeFromMidiValue:volume]; },
         SLIDER_1_CONTROLS: ^(UInt8 volume){ [self->spotifyApp setSoundVolume:(NSInteger)(volume * SLIDER_SCALE_FACTOR)]; },
         SLIDER_2_CONTROLS: ^(UInt8 volume){
             [self->hueAPI setBrightness:(NSInteger)(volume * SLIDER_SCALE_FACTOR)
@@ -778,16 +808,16 @@ NSString* byteToStr(UInt8 byte)
         [NSString stringWithFormat:@"%@:%@", PLAYBACK_BUTTONS_ID, PLAYBACK_BUTTON_PLAY_PRESSED]: @"spotify",
         [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_NEXT_PRESSED]: @"spotify",
         [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_PREV_PRESSED]: @"spotify",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"applescript",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"applescript",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"applescript",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"applescript",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"coreaudio",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"coreaudio",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"coreaudio",
+        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"coreaudio",
         // Knob actions are non-blocking (just NSLog)
     };
     
     // Map slider controls to blocking groups
     sliderActionGroups = @{
-        SLIDER_0_CONTROLS: @"applescript",   // System volume via AppleScript
+        SLIDER_0_CONTROLS: @"coreaudio",     // System volume via CoreAudio
         SLIDER_1_CONTROLS: @"spotify",       // Spotify volume via ScriptingBridge
         // Hue sliders (2-5) are non-blocking (async HTTP), no entry needed
     };
