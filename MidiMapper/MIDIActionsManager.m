@@ -9,6 +9,7 @@
 // MIDIActionsManager.m
 #import "HueAPI.h"
 #import "MIDIActionsManager.h"
+#import "DedupingLogger.h"
 #import <Carbon/Carbon.h>   // for kAENoReply, etc.
 
 double const SLIDER_SCALE_FACTOR = 0.787;
@@ -106,7 +107,10 @@ NSString* byteToStr(UInt8 byte)
             if (theScript) {
                 [scriptCache setObject:theScript forKey:command];
             } else {
-                NSLog(@"Failed to compile AppleScript for command '%@'", command);
+                [[DedupingLogger shared] logfWithLevel:DLogLevelError
+                                              category:@"AE"
+                                             dedupeKey:@"CompileFailed"
+                                                format:@"Failed to compile AppleScript for command '%@'", command];
                 return;
             }
         }
@@ -115,7 +119,12 @@ NSString* byteToStr(UInt8 byte)
     NSAppleEventDescriptor *result = [theScript executeAndReturnError:&errorDict];
 
     if (!result && errorDict) {
-        NSLog(@"AppleScript error for command '%@': %@", command, errorDict);
+        // Use a truncated command as part of the key to group similar errors
+        NSString *keyCommand = command.length > 30 ? [command substringToIndex:30] : command;
+        [[DedupingLogger shared] logfWithLevel:DLogLevelError
+                                      category:@"AE"
+                                     dedupeKey:[NSString stringWithFormat:@"ExecError:%@", keyCommand]
+                                        format:@"AppleScript error for command '%@': %@", command, errorDict];
     }
 }
 
@@ -172,7 +181,10 @@ NSString* byteToStr(UInt8 byte)
 - (void)mapControlToAction:(MIKMIDICommand *) command forControl:(NSString *) control {
     NSDictionary *controlMap = [controlToActionMap objectForKey:control];
     if (controlMap == nil) {
-        NSLog(@"No control map defined for current control");
+        [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                      category:@"MIDI"
+                                     dedupeKey:[NSString stringWithFormat:@"NoControlMap:%@", control ?: @"nil"]
+                                        format:@"No control map defined for control=%@", control];
         return;
     }
 
@@ -180,7 +192,10 @@ NSString* byteToStr(UInt8 byte)
 
     void (^action)(void) = [controlMap objectForKey:actionId];
     if (action == nil) {
-        NSLog(@"No action defined for current control");
+        [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                      category:@"MIDI"
+                                     dedupeKey:[NSString stringWithFormat:@"NoAction:%@:%@", control, actionId]
+                                        format:@"No action defined for control=%@ actionId=%@", control, actionId];
         return;
     }
 
@@ -197,19 +212,29 @@ NSString* byteToStr(UInt8 byte)
 - (void)handleMIDIControlChangeCommands:(NSArray<MIKMIDIControlChangeCommand*> *)commands
 {
     for (MIKMIDIControlChangeCommand *command in commands) {
-        NSLog(@"");
-        NSLog(@"Command values: %d, Data1: %d, Data2: %d", command.statusByte, command.dataByte1, command.dataByte2);
+        [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                      category:@"MIDI"
+                                     dedupeKey:[NSString stringWithFormat:@"Command:%d:%d", command.dataByte1, command.dataByte2]
+                                        format:@"Command values: status=%d, Data1=%d, Data2=%d", command.statusByte, command.dataByte1, command.dataByte2];
         if (!command.isFourteenBitCommand) {
-            NSLog(@"7bit command:");
-            NSLog(@"Controller number: %lu, Controller value: %lu", command.controllerNumber, command.controllerValue);
+            [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                          category:@"MIDI"
+                                         dedupeKey:@"7bit"
+                                            format:@"7bit command: controllerNumber=%lu, controllerValue=%lu",
+                                                   command.controllerNumber, command.controllerValue];
             NSString *control = byteToStr(command.dataByte1);
             [self mapControlToAction:command forControl: control];
             continue;
         }
-        NSLog(@"14bit command:");
-        NSLog(@"commandForMostSignificantBits:: Controller number: %lu, Controller value: %lu", command.commandForMostSignificantBits.controllerNumber, command.commandForMostSignificantBits.controllerValue);
+        [[DedupingLogger shared] logfWithLevel:DLogLevelDebug
+                                      category:@"MIDI"
+                                     dedupeKey:@"14bit"
+                                        format:@"14bit command: MSB controllerNumber=%lu value=%lu, LSB controllerNumber=%lu value=%lu",
+                                               command.commandForMostSignificantBits.controllerNumber,
+                                               command.commandForMostSignificantBits.controllerValue,
+                                               command.commandForLeastSignificantBits.controllerNumber,
+                                               command.commandForLeastSignificantBits.controllerValue];
         [self setControl:command.commandForMostSignificantBits];
-        NSLog(@"commandForLeastSignificantBits:: Controller number: %lu, Controller value: %lu", command.commandForLeastSignificantBits.controllerNumber, command.commandForLeastSignificantBits.controllerValue);
         [self mapControlToAction:command.commandForLeastSignificantBits];
     }
 }
