@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */; };
 		9437EB812EF163F2004B75BF /* DedupingLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB802EF163F2004B75BF /* DedupingLogger.m */; };
+		9437EB842EF16F9A004B75BF /* ActionContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB832EF16F9A004B75BF /* ActionContext.m */; };
 		943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */; };
 		943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B56412C05D7BF00D88264 /* MIDIActionsManager.m */; };
 		9455C5E22EE1F1ED005941B9 /* HueAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = 9455C5DF2EE1F1ED005941B9 /* HueAPI.m */; };
@@ -37,6 +38,8 @@
 		94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.release.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.release.xcconfig"; sourceTree = "<group>"; };
 		9437EB7F2EF163F2004B75BF /* DedupingLogger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DedupingLogger.h; sourceTree = "<group>"; };
 		9437EB802EF163F2004B75BF /* DedupingLogger.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DedupingLogger.m; sourceTree = "<group>"; };
+		9437EB822EF16F9A004B75BF /* ActionContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActionContext.h; sourceTree = "<group>"; };
+		9437EB832EF16F9A004B75BF /* ActionContext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ActionContext.m; sourceTree = "<group>"; };
 		943B563D2C05D2AE00D88264 /* MIDIControllerManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MIDIControllerManager.m; sourceTree = "<group>"; };
 		943B563F2C05D2E700D88264 /* MIDIControllerManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MIDIControllerManager.h; sourceTree = "<group>"; };
 		943B56402C05D74800D88264 /* MIDIActionsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MIDIActionsManager.h; sourceTree = "<group>"; };
@@ -98,6 +101,8 @@
 		94B36604253B3B0600187E43 /* MidiMapper */ = {
 			isa = PBXGroup;
 			children = (
+				9437EB822EF16F9A004B75BF /* ActionContext.h */,
+				9437EB832EF16F9A004B75BF /* ActionContext.m */,
 				9437EB7F2EF163F2004B75BF /* DedupingLogger.h */,
 				9437EB802EF163F2004B75BF /* DedupingLogger.m */,
 				9455C5DE2EE1F1ED005941B9 /* HueAPI.h */,
@@ -230,6 +235,7 @@
 				943B563E2C05D2AE00D88264 /* MIDIControllerManager.m in Sources */,
 				9455C5E22EE1F1ED005941B9 /* HueAPI.m in Sources */,
 				9455C5E32EE1F1ED005941B9 /* HueBridgeDiscovery.m in Sources */,
+				9437EB842EF16F9A004B75BF /* ActionContext.m in Sources */,
 				94B36606253B3B0600187E43 /* main.m in Sources */,
 				943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */,
 				9437EB812EF163F2004B75BF /* DedupingLogger.m in Sources */,
