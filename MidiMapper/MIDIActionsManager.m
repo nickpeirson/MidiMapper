@@ -98,14 +98,17 @@ NSString* byteToStr(UInt8 byte)
 
     NSDictionary *errorDict = nil;
 
-    NSAppleScript *theScript = [scriptCache objectForKey:command];
-    if (!theScript) {
-        theScript = [[NSAppleScript alloc] initWithSource:command];
-        if (theScript) {
-            [scriptCache setObject:theScript forKey:command];
-        } else {
-            NSLog(@"Failed to compile AppleScript for command '%@'", command);
-            return;
+    NSAppleScript *theScript;
+    @synchronized (scriptCache) {
+        theScript = [scriptCache objectForKey:command];
+        if (!theScript) {
+            theScript = [[NSAppleScript alloc] initWithSource:command];
+            if (theScript) {
+                [scriptCache setObject:theScript forKey:command];
+            } else {
+                NSLog(@"Failed to compile AppleScript for command '%@'", command);
+                return;
+            }
         }
     }
 
