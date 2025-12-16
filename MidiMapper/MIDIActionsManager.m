@@ -75,6 +75,7 @@ NSString *const KNOB_DECREMENT = @"1";
     HueAPI *hueAPI;
     dispatch_queue_t actionQueue;   // serial queue for bookkeeping and coordination
     dispatch_queue_t blockingActionQueue;  // concurrent queue for potentially blocking actions
+    dispatch_queue_t timeoutQueue;   // serial queue for timeout scheduling (avoids actionQueue backlog)
     NSMutableDictionary<NSString *, NSNumber *> *pendingSliderValues;  // latest value per slider
     NSMutableDictionary<NSString *, NSNumber *> *sliderUpdateScheduled; // whether update is scheduled
     
@@ -109,6 +110,10 @@ NSString *const KNOB_DECREMENT = @"1";
         
         // Concurrent queue for potentially blocking actions (Spotify, AppleScript)
         blockingActionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.blockingActions", DISPATCH_QUEUE_CONCURRENT);
+        
+        // Serial queue for timeout scheduling (fires even if actionQueue is backlogged)
+        timeoutQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.timeoutQueue", DISPATCH_QUEUE_SERIAL);
+        dispatch_set_target_queue(timeoutQueue, dispatch_get_global_queue(QOS_CLASS_UTILITY, 0));
         
         // Throttling state for sliders
         pendingSliderValues = [NSMutableDictionary dictionary];
@@ -277,9 +282,21 @@ NSString* byteToStr(UInt8 byte)
     // Mark group as in-flight
     [self markBlockingGroupInFlight:groupKey];
     
-    // Schedule timeout on actionQueue
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), actionQueue, ^{
-        [self handleTimeoutForEventId:eventId actionName:actionName groupKey:groupKey context:ctx];
+    // Capture timeout token for cancellation (token is incremented on completion)
+    uint64_t token = ctx ? ++ctx.timeoutToken : 0;
+    
+    // Schedule timeout on timeoutQueue (fires even if actionQueue is backlogged)
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), timeoutQueue, ^{
+        // Dispatch to actionQueue for state mutations
+        dispatch_async(self->actionQueue, ^{
+            // Check if token is still valid (not invalidated by completion)
+            if (ctx && ctx.timeoutToken != token) {
+                NSLog(@"[TIMEOUT] IGNORE stale timeout eventId=%llu group=%@ token=%llu (current=%llu)",
+                      eventId, groupKey, token, ctx.timeoutToken);
+                return;
+            }
+            [self handleTimeoutForEventId:eventId actionName:actionName groupKey:groupKey context:ctx];
+        });
     });
     
     // Execute on blocking queue
@@ -296,6 +313,11 @@ NSString* byteToStr(UInt8 byte)
         }
         
         NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+        
+        // Invalidate the scheduled timeout by bumping the token
+        if (ctx) {
+            ctx.timeoutToken++;
+        }
         
         // Check if we already timed out
         BOOL alreadyTimedOut = [self isEventTimedOut:eventId];
@@ -500,10 +522,22 @@ NSString* byteToStr(UInt8 byte)
                 // Execute as blocking action
                 [self markBlockingGroupInFlight:groupKey];
                 
-                // Schedule timeout
+                // Capture timeout token for cancellation
                 uint64_t eventId = ctx ? ctx.eventId : 0;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), self->actionQueue, ^{
-                    [self handleSliderTimeoutForControl:control groupKey:groupKey eventId:eventId];
+                uint64_t token = ctx ? ++ctx.timeoutToken : 0;
+                
+                // Schedule timeout on timeoutQueue (fires even if actionQueue is backlogged)
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kBlockingActionTimeoutSeconds * NSEC_PER_SEC)), self->timeoutQueue, ^{
+                    // Dispatch to actionQueue for state mutations
+                    dispatch_async(self->actionQueue, ^{
+                        // Check if token is still valid
+                        if (ctx && ctx.timeoutToken != token) {
+                            NSLog(@"[TIMEOUT] IGNORE stale timeout slider=%@ group=%@ token=%llu (current=%llu)",
+                                  control, groupKey, token, ctx.timeoutToken);
+                            return;
+                        }
+                        [self handleSliderTimeoutForControl:control groupKey:groupKey eventId:eventId];
+                    });
                 });
                 
                 dispatch_async(self->blockingActionQueue, ^{
@@ -515,6 +549,11 @@ NSString* byteToStr(UInt8 byte)
                     }
                     
                     NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+                    
+                    // Invalidate the scheduled timeout by bumping the token
+                    if (ctx) {
+                        ctx.timeoutToken++;
+                    }
                     
                     BOOL alreadyTimedOut = [self isEventTimedOut:eventId];
                     [self clearEventTimedOut:eventId];

@@ -44,6 +44,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) BOOL wasThrottled;
 @property (nonatomic) BOOL didTimeout;
 
+// Timeout cancellation token (incremented to invalidate scheduled timeouts)
+@property (atomic, assign) uint64_t timeoutToken;
+
 // Factory method - creates context with unique eventId and current timestamp
 + (instancetype)contextWithStatus:(UInt8)status data1:(UInt8)data1 data2:(UInt8)data2;
 
