@@ -67,7 +67,9 @@
     self->connectionToken = [[MIKMIDIDeviceManager sharedDeviceManager] connectDevice:device
                                                                                error:&error
                                                                         eventHandler:^(MIKMIDISourceEndpoint *source, NSArray<MIKMIDIControlChangeCommand *> *commands) {
-        [self->actionsManager handleMIDIControlChangeCommands:commands];
+        @autoreleasepool {
+            [self->actionsManager handleMIDIControlChangeCommands:commands];
+        }
     }];
     printf("Connecting Device(s):\n");
     for (id token in self->connectionToken) {
