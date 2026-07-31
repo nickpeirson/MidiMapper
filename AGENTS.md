@@ -20,11 +20,17 @@
 - Do not edit `Pods/`, `build/`, or DerivedData directly.
 - Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
 
+## Issue implementation workflow
+
+- Before modifying files for an issue, create a dedicated branch and linked Git worktree from the current default branch. Do not implement an issue in the primary checkout or in a worktree containing unrelated changes.
+- Keep the issue work isolated. Do not modify, stage, stash, reset, commit, or otherwise disturb unrelated changes in another checkout.
+- Before committing, inspect the staged diff and ensure it contains only changes required by the issue.
+- Treat automated test coverage and passing tests as part of every issue's acceptance criteria. Add or update focused coverage for changed behaviour where practical, and run the relevant test command before integration.
+- Unless the issue or repository guidance explicitly requires review without publication, completing an implementation includes running the required validation, making a focused commit, pushing the branch, merging it into the default branch through the repository's normal workflow, and closing the GitHub issue. Do not stop after local implementation or after merely pushing a branch and wait for a separate instruction.
+- Leave the issue open and report the precise blocker only when validation fails, publication is not authorised or possible, the branch cannot be merged safely, or a genuine product or technical decision is required.
+
 ## GitHub issues
 
 - When asked to create an issue for this project, create it in `nickpeirson/MidiMapper`.
-- State the problem, bounded scope, and clear acceptance criteria. Do not create an issue or pull request unless asked.
-- When asked to implement an issue, work in a dedicated Git worktree and branch. Do not implement it in the user's active checkout, especially when it has uncommitted changes.
-- Keep the worktree limited to the issue's scope. Before committing, review the diff and stage only the files that implement the issue; never include unrelated changes from another checkout.
-- Treat automated test coverage and passing tests as part of every issue's acceptance criteria. Add or update focused coverage for changed behaviour where practical, and run the relevant test command before integration.
-- Unless the user says otherwise, complete an implemented issue by verifying it, committing and pushing the scoped changes, merging the completed branch into the primary branch (currently `master`), pushing it, and closing the GitHub issue with a concise implementation summary and the resulting commit reference.
+- State the problem, bounded scope, and clear acceptance criteria.
+- Do not create additional issues or pull requests merely to document completed work. An implementation request authorises the publication and closure steps above.
