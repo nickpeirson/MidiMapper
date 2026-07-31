@@ -24,7 +24,7 @@ help:
 	@echo "  make test     Run the hardware-free regression suite through the workspace"
 	@echo "  make install  Build, sign, install, and restart the LaunchAgent"
 	@echo "  make status   Show LaunchAgent status"
-	@echo "  make logs     Follow the LaunchAgent error log"
+	@echo "  make logs     Follow MidiMapper's Unified Log output"
 	@echo "  make clean    Remove local build output"
 
 pods:
@@ -60,7 +60,7 @@ status:
 	/bin/launchctl print gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
 
 logs:
-	tail -f /tmp/MidiMapper.err
+	log stream --style compact --level debug --predicate 'subsystem == "com.nickpeirson.MidiMapper"'
 
 clean:
 	rm -rf "$(BUILD_ROOT)"

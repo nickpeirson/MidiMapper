@@ -12,9 +12,5 @@
 	<true/>
 	<key>KeepAlive</key>
 	<true/>
-	<key>StandardErrorPath</key>
-	<string>/tmp/MidiMapper.err</string>
-	<key>StandardOutPath</key>
-	<string>/tmp/MidiMapper.out</string>
 </dict>
 </plist>

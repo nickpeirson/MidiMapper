@@ -8,13 +8,52 @@
 
 #import "DedupingLogger.h"
 #import <os/lock.h>
+#import <os/log.h>
 
-static NSString *const kLogLevelNames[] = {
-    @"DEBUG",
-    @"INFO",
-    @"WARN",
-    @"ERROR"
-};
+static NSString *const kLogSubsystem = @"com.nickpeirson.MidiMapper";
+
+static os_log_t MMLoggerForCategory(NSString *category) {
+    static os_log_t midiLog;
+    static os_log_t actionLog;
+    static os_log_t spotifyLog;
+    static os_log_t hueLog;
+    static os_log_t coreAudioLog;
+    static os_log_t generalLog;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        const char *subsystem = kLogSubsystem.UTF8String;
+        midiLog = os_log_create(subsystem, "MIDI");
+        actionLog = os_log_create(subsystem, "Action");
+        spotifyLog = os_log_create(subsystem, "Spotify");
+        hueLog = os_log_create(subsystem, "Hue");
+        coreAudioLog = os_log_create(subsystem, "CoreAudio");
+        generalLog = os_log_create(subsystem, "General");
+    });
+
+    if ([category caseInsensitiveCompare:@"MIDI"] == NSOrderedSame) return midiLog;
+    if ([category caseInsensitiveCompare:@"Action"] == NSOrderedSame ||
+        [category caseInsensitiveCompare:@"AE"] == NSOrderedSame) return actionLog;
+    if ([category caseInsensitiveCompare:@"Spotify"] == NSOrderedSame) return spotifyLog;
+    if ([category caseInsensitiveCompare:@"Hue"] == NSOrderedSame) return hueLog;
+    if ([category caseInsensitiveCompare:@"CoreAudio"] == NSOrderedSame) return coreAudioLog;
+    return generalLog;
+}
+
+void MMLog(DLogLevel level, NSString *category, NSString *format, ...) {
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+
+    os_log_type_t type = OS_LOG_TYPE_DEFAULT;
+    switch (level) {
+        case DLogLevelDebug: type = OS_LOG_TYPE_DEBUG; break;
+        case DLogLevelInfo: type = OS_LOG_TYPE_INFO; break;
+        case DLogLevelWarn: type = OS_LOG_TYPE_ERROR; break;
+        case DLogLevelError: type = OS_LOG_TYPE_FAULT; break;
+    }
+    os_log_with_type(MMLoggerForCategory(category), type, "%{public}s", message.UTF8String);
+}
 
 #pragma mark - LogEntry
 
@@ -259,7 +298,7 @@ static NSString *const kLogLevelNames[] = {
 - (void)emitLogWithLevel:(DLogLevel)level
                 category:(NSString *)category
                  message:(NSString *)message {
-    NSLog(@"[%@][%@] %@", kLogLevelNames[level], category, message);
+    MMLog(level, category, @"%@", message);
 }
 
 - (void)emitSummaryForCategory:(NSString *)category
@@ -279,8 +318,8 @@ static NSString *const kLogLevelNames[] = {
                  messageSample:(NSString *)messageSample
                      isEvicted:(BOOL)isEvicted {
     NSString *suffix = isEvicted ? @" (evicted)" : @"";
-    NSLog(@"[INFO][%@] [suppressed x%llu] key=%@ last=\"%@\"%@",
-          category, count, dedupeKey, messageSample, suffix);
+    MMLogInfo(category, @"[suppressed x%llu] key=%@ last=\"%@\"%@",
+              count, dedupeKey, messageSample, suffix);
 }
 
 @end

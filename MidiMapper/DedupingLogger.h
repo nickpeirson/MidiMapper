@@ -17,6 +17,17 @@ typedef NS_ENUM(NSInteger, DLogLevel) {
     DLogLevelError
 };
 
+/// Write an operational message to macOS Unified Logging. Categories are
+/// exposed in Console and can be filtered with `log stream`.
+FOUNDATION_EXPORT void MMLog(DLogLevel level,
+                             NSString *category,
+                             NSString *format, ...) NS_FORMAT_FUNCTION(3,4);
+
+#define MMLogDebug(category, format, ...) MMLog(DLogLevelDebug, category, format, ##__VA_ARGS__)
+#define MMLogInfo(category, format, ...)  MMLog(DLogLevelInfo, category, format, ##__VA_ARGS__)
+#define MMLogWarn(category, format, ...)  MMLog(DLogLevelWarn, category, format, ##__VA_ARGS__)
+#define MMLogError(category, format, ...) MMLog(DLogLevelError, category, format, ##__VA_ARGS__)
+
 @interface DedupingLogger : NSObject
 
 + (instancetype)shared;
