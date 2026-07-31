@@ -10,7 +10,8 @@
 
 - CocoaPods owns `Pods/`; change dependencies in `Podfile`, then run `pod install`.
 - Keep `Podfile.lock` committed so dependency resolution is reproducible.
-- Build the Release app through the workspace with the `MidiMapper (Release)` scheme.
+- Use `make build` to build the Release app through the workspace.
+- Use `make install` to build, sign, install, and restart the LaunchAgent. It changes `/usr/local/bin` and the user's LaunchAgents directory.
 - In Codex, CocoaPods/Xcode builds may need elevated execution: Xcode runs nested sandboxed script phases and writes to DerivedData. Do not work around this by manually building Pods or adding custom linker paths.
 
 ## Generated and local files
