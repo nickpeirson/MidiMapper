@@ -841,16 +841,16 @@ NSString* byteToStr(UInt8 byte)
         SLIDER_5_CONTROLS: @"Hue:Light5",
     };
     
-    // Map action keys to blocking groups (for timeout/circuit-breaker protection)
+    // Map action names to blocking groups (for timeout/circuit-breaker protection).
+    // mapControlToAction: resolves an action name before it asks
+    // blockingGroupForActionName:, so these keys must match actionNameMap values.
     actionGroupMap = @{
-        [NSString stringWithFormat:@"%@:%@", PLAYBACK_BUTTONS_ID, PLAYBACK_BUTTON_PAUSE_PRESSED]: @"spotify",
-        [NSString stringWithFormat:@"%@:%@", PLAYBACK_BUTTONS_ID, PLAYBACK_BUTTON_PLAY_PRESSED]: @"spotify",
-        [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_NEXT_PRESSED]: @"spotify",
-        [NSString stringWithFormat:@"%@:%@", TRACK_BUTTONS_ID, TRACK_BUTTON_PREV_PRESSED]: @"spotify",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"coreaudio",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_0_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"coreaudio",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_PRESSED]: @"coreaudio",
-        [NSString stringWithFormat:@"%@:%@", SLIDER_1_CONTROLS, SLIDER_M_BUTTON_RELEASED]: @"coreaudio",
+        @"Spotify:Pause": @"spotify",
+        @"Spotify:Play": @"spotify",
+        @"Spotify:NextTrack": @"spotify",
+        @"Spotify:PrevTrack": @"spotify",
+        @"System:Mute": @"coreaudio",
+        @"System:Unmute": @"coreaudio",
         // Knob actions are non-blocking (just NSLog)
     };
     
