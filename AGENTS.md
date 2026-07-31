@@ -20,7 +20,16 @@
 - Do not edit `Pods/`, `build/`, or DerivedData directly.
 - Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
 
+## Issue implementation workflow
+
+- Before modifying files for an issue, create a dedicated branch and linked Git worktree from the current default branch. Do not implement an issue in the primary checkout or in a worktree containing unrelated changes.
+- Keep the issue work isolated. Do not modify, stage, stash, reset, commit, or otherwise disturb unrelated changes in another checkout.
+- Before committing, inspect the staged diff and ensure it contains only changes required by the issue.
+- Unless the issue or repository guidance explicitly requires review without publication, completing an implementation includes running the required validation, making a focused commit, pushing the branch, merging it into the default branch through the repository's normal workflow, and closing the GitHub issue. Do not stop after local implementation or after merely pushing a branch and wait for a separate instruction.
+- Leave the issue open and report the precise blocker only when validation fails, publication is not authorised or possible, the branch cannot be merged safely, or a genuine product or technical decision is required.
+
 ## GitHub issues
 
 - When asked to create an issue for this project, create it in `nickpeirson/MidiMapper`.
-- State the problem, bounded scope, and clear acceptance criteria. Do not create an issue or pull request unless asked.
+- State the problem, bounded scope, and clear acceptance criteria.
+- Do not create additional issues or pull requests merely to document completed work. An implementation request authorises the publication and closure steps above.
