@@ -24,3 +24,6 @@
 
 - When asked to create an issue for this project, create it in `nickpeirson/MidiMapper`.
 - State the problem, bounded scope, and clear acceptance criteria. Do not create an issue or pull request unless asked.
+- When asked to implement an issue, work in a dedicated Git worktree and branch. Do not implement it in the user's active checkout, especially when it has uncommitted changes.
+- Keep the worktree limited to the issue's scope. Before committing, review the diff and stage only the files that implement the issue; never include unrelated changes from another checkout.
+- Unless the user says otherwise, complete an implemented issue by verifying it, committing the scoped changes, pushing the branch, and closing the GitHub issue with a concise implementation summary and the commit or branch reference.
