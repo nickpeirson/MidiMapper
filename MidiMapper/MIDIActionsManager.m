@@ -65,7 +65,7 @@ NSString *const KNOB_DECREMENT = @"1";
     NSDictionary<NSString *, id> *controlToActionMap;
     NSDictionary<NSString *, NSString *> *actionNameMap;  // Maps control:actionId to human-readable name
     NSDictionary<NSString *, NSString *> *actionGroupMap; // Maps actionName to blocking group (e.g., "spotify", "applescript")
-    NSDictionary<NSString *, id> *sliderActions;
+    NSMutableDictionary<NSString *, id> *sliderActions;
     NSDictionary<NSString *, NSString *> *sliderActionNames;  // Maps control to human-readable name
     NSDictionary<NSString *, NSString *> *sliderActionGroups; // Maps control to blocking group
     NSMutableDictionary<NSString *, NSAppleScript *> *scriptCache;
@@ -94,16 +94,26 @@ NSString *const KNOB_DECREMENT = @"1";
 }
 
 - (instancetype)init {
+    return [self initWithExternalBackends:YES];
+}
+
+- (instancetype)initForTesting {
+    return [self initWithExternalBackends:NO];
+}
+
+- (instancetype)initWithExternalBackends:(BOOL)useExternalBackends {
     self = [super init];
     if (self) {
-        spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
+        if (useExternalBackends) {
+            spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
+            hueAPI = [[HueAPI alloc] init];
+        }
         
         // Fire-and-forget AppleEvents to Spotify with reasonable timeout
         [spotifyApp setSendMode:kAENoReply];
         [spotifyApp setTimeout:5 * 60];  // 5 second timeout (in ticks: 60 ticks/sec)
         
         scriptCache = [NSMutableDictionary dictionaryWithCapacity:200];
-        hueAPI = [[HueAPI alloc] init];
         
         // Serial queue for bookkeeping and coordination
         actionQueue = dispatch_queue_create("com.nickpeirson.MidiMapper.actions", DISPATCH_QUEUE_SERIAL);
@@ -191,6 +201,34 @@ NSString* byteToStr(UInt8 byte)
 
 - (NSString *)blockingGroupForSliderControl:(NSString *)control {
     return sliderActionGroups[control];
+}
+
+- (NSString *)actionNameForControl:(NSString *)control actionID:(NSString *)actionID {
+    return actionNameMap[[NSString stringWithFormat:@"%@:%@", control, actionID]];
+}
+
+- (NSString *)actionGroupForControl:(NSString *)control actionID:(NSString *)actionID {
+    return [self blockingGroupForActionName:[self actionNameForControl:control actionID:actionID]];
+}
+
+- (NSString *)sliderActionNameForControl:(NSString *)control {
+    return sliderActionNames[control];
+}
+
+- (NSString *)sliderActionGroupForControl:(NSString *)control {
+    return [self blockingGroupForSliderControl:control];
+}
+
+- (void)setSliderActionForTesting:(void (^)(UInt8 value))action forControl:(NSString *)control {
+    if (action) {
+        sliderActions[control] = [action copy];
+    } else {
+        [sliderActions removeObjectForKey:control];
+    }
+}
+
+- (void)handleSliderValueForTesting:(UInt8)value control:(NSString *)control {
+    [self sliderMovedForControl:control value:value context:nil];
 }
 
 - (BOOL)isBlockingGroup:(NSString *)groupKey {
@@ -806,7 +844,7 @@ NSString* byteToStr(UInt8 byte)
         [NSString stringWithFormat:@"%@:%@", KNOB_0, KNOB_DECREMENT]: @"Knob:Decrement",
     };
 
-    sliderActions = @{
+    sliderActions = [@{
         SLIDER_0_CONTROLS: ^(UInt8 volume){ [self setSystemVolumeFromMidiValue:volume]; },
         SLIDER_1_CONTROLS: ^(UInt8 volume){ [self->spotifyApp setSoundVolume:(NSInteger)(volume * SLIDER_SCALE_FACTOR)]; },
         SLIDER_2_CONTROLS: ^(UInt8 volume){
@@ -829,7 +867,7 @@ NSString* byteToStr(UInt8 byte)
                        forResourceType:@"light"
                            resourceID:@"41dbbcd1-0999-422a-ad43-a7c182f0f432"];
         }
-    };
+    } mutableCopy];
     
     // Human-readable slider action names
     sliderActionNames = @{

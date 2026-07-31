@@ -15,12 +15,13 @@ LAUNCH_AGENT_SOURCE := $(PROJECT_ROOT)/com.nickpeirson.MidiMapper.plist
 LAUNCH_AGENT_DEST := $(HOME)/Library/LaunchAgents/$(LAUNCH_AGENT_LABEL).plist
 
 .DEFAULT_GOAL := help
-.PHONY: help pods build install status logs clean
+.PHONY: help pods build test install status logs clean
 
 help:
 	@echo "MidiMapper build targets"
 	@echo "  make pods     Install locked CocoaPods dependencies"
 	@echo "  make build    Build the Release executable through the workspace"
+	@echo "  make test     Run the hardware-free regression suite through the workspace"
 	@echo "  make install  Build, sign, install, and restart the LaunchAgent"
 	@echo "  make status   Show LaunchAgent status"
 	@echo "  make logs     Follow the LaunchAgent error log"
@@ -36,6 +37,14 @@ build: pods
 		-configuration "$(CONFIGURATION)" \
 		-derivedDataPath "$(BUILD_DIR)" \
 		build CODE_SIGNING_ALLOWED=NO
+
+test: pods
+	xcodebuild \
+		-workspace "$(WORKSPACE)" \
+		-scheme "MidiMapperTests" \
+		-configuration Debug \
+		-derivedDataPath "$(BUILD_DIR)" \
+		test CODE_SIGNING_ALLOWED=NO
 
 install: build
 	@test -x "$(BINARY)"

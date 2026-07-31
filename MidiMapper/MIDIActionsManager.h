@@ -21,7 +21,16 @@
 - (void)mapControlToAction:(MIKMIDICommand *)command;
 - (void)handleMIDIControlChangeCommands:(NSArray<MIKMIDIControlChangeCommand*> *)commands;
 
+// These narrow inspection and injection points keep the regression suite independent
+// of MIDI hardware and the external applications controlled by the mapper.
+- (instancetype)initForTesting;
+- (nullable NSString *)actionNameForControl:(NSString *)control actionID:(NSString *)actionID;
+- (nullable NSString *)actionGroupForControl:(NSString *)control actionID:(NSString *)actionID;
+- (nullable NSString *)sliderActionNameForControl:(NSString *)control;
+- (nullable NSString *)sliderActionGroupForControl:(NSString *)control;
+- (void)setSliderActionForTesting:(void (^)(UInt8 value))action forControl:(NSString *)control;
+- (void)handleSliderValueForTesting:(UInt8)value control:(NSString *)control;
+
 @end
 
 #endif /* MIDIActionsManager_h */
-
