@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5C04CF2F628B560EA42D05B2 /* libPods-MidiMapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C70F6EE2F67CFD8E3E4D7D06 /* libPods-MidiMapper.a */; };
+		5E0AA728A82F80F222AA0544 /* libPods-MidiMapperTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 96EB9829372A77FF63AAAA94 /* libPods-MidiMapperTests.a */; };
 		941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */; };
 		9437EB812EF163F2004B75BF /* DedupingLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB802EF163F2004B75BF /* DedupingLogger.m */; };
 		9437EB842EF16F9A004B75BF /* ActionContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB832EF16F9A004B75BF /* ActionContext.m */; };
@@ -18,7 +20,18 @@
 		9455C5E22EE1F1ED005941B9 /* HueAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = 9455C5DF2EE1F1ED005941B9 /* HueAPI.m */; };
 		9455C5E32EE1F1ED005941B9 /* HueBridgeDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 9455C5E12EE1F1ED005941B9 /* HueBridgeDiscovery.m */; };
 		94B36606253B3B0600187E43 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 94B36605253B3B0600187E43 /* main.m */; };
-		B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */; };
+		A10000000000000000000001 /* MIDIActionsManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* MIDIActionsManagerTests.m */; };
+		A10000000000000000000003 /* MIDIActionsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 943B56412C05D7BF00D88264 /* MIDIActionsManager.m */; };
+		A10000000000000000000004 /* ActionContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB832EF16F9A004B75BF /* ActionContext.m */; };
+		A10000000000000000000005 /* DedupingLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB802EF163F2004B75BF /* DedupingLogger.m */; };
+		A10000000000000000000006 /* SystemVolumeController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9437EB8C2EF1A000004B75BF /* SystemVolumeController.m */; };
+		A10000000000000000000007 /* HueAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = 9455C5DF2EE1F1ED005941B9 /* HueAPI.m */; };
+		A10000000000000000000008 /* HueBridgeDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 9455C5E12EE1F1ED005941B9 /* HueBridgeDiscovery.m */; };
+		A10000000000000000000011 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* XCTest.framework */; };
+		A10000000000000000000014 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */; };
+		A10000000000000000000015 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9437EB852EF19B00004B75BF /* AudioToolbox.framework */; };
+		A10000000000000000000016 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9437EB872EF19B1C004B75BF /* CoreAudio.framework */; };
+		B1F6E90C86CFEFB2E2072B9E /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,8 +47,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MidiMapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.debug.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.debug.xcconfig"; sourceTree = "<group>"; };
+		508DCF780DF77D838ADC1A37 /* Pods-MidiMapperTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapperTests.release.xcconfig"; path = "Target Support Files/Pods-MidiMapperTests/Pods-MidiMapperTests.release.xcconfig"; sourceTree = "<group>"; };
 		941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
 		941067BA253EFACE001CDC32 /* Spotify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Spotify.h; sourceTree = "<group>"; };
 		94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapper.release.xcconfig"; path = "Target Support Files/Pods-MidiMapper/Pods-MidiMapper.release.xcconfig"; sourceTree = "<group>"; };
@@ -60,6 +73,12 @@
 		9455C5E12EE1F1ED005941B9 /* HueBridgeDiscovery.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HueBridgeDiscovery.m; sourceTree = "<group>"; };
 		94B36602253B3B0600187E43 /* MidiMapper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MidiMapper; sourceTree = BUILT_PRODUCTS_DIR; };
 		94B36605253B3B0600187E43 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		96EB9829372A77FF63AAAA94 /* libPods-MidiMapperTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MidiMapperTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000002 /* MIDIActionsManagerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MIDIActionsManagerTests.m; sourceTree = "<group>"; };
+		A10000000000000000000012 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		A10000000000000000000017 /* MidiMapperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MidiMapperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1002C32CEB4B20C7ED79F77 /* Pods-MidiMapperTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MidiMapperTests.debug.xcconfig"; path = "Target Support Files/Pods-MidiMapperTests/Pods-MidiMapperTests.debug.xcconfig"; sourceTree = "<group>"; };
+		C70F6EE2F67CFD8E3E4D7D06 /* libPods-MidiMapper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MidiMapper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,10 +86,23 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1F6E90C86CFEFB2E2072B9E /* libPods-MidiMapper.a in Frameworks */,
+				B1F6E90C86CFEFB2E2072B9E /* BuildFile in Frameworks */,
 				941067B7253EEDAC001CDC32 /* ScriptingBridge.framework in Frameworks */,
 				9437EB882EF19B1C004B75BF /* CoreAudio.framework in Frameworks */,
 				9437EB862EF19B00004B75BF /* AudioToolbox.framework in Frameworks */,
+				5C04CF2F628B560EA42D05B2 /* libPods-MidiMapper.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000018 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000011 /* XCTest.framework in Frameworks */,
+				A10000000000000000000014 /* ScriptingBridge.framework in Frameworks */,
+				A10000000000000000000015 /* AudioToolbox.framework in Frameworks */,
+				A10000000000000000000016 /* CoreAudio.framework in Frameworks */,
+				5E0AA728A82F80F222AA0544 /* libPods-MidiMapperTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +114,8 @@
 			children = (
 				2429E55B4E80AB578E3024EE /* Pods-MidiMapper.debug.xcconfig */,
 				94256B7CF5EEE25631031C3D /* Pods-MidiMapper.release.xcconfig */,
+				C1002C32CEB4B20C7ED79F77 /* Pods-MidiMapperTests.debug.xcconfig */,
+				508DCF780DF77D838ADC1A37 /* Pods-MidiMapperTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -96,6 +130,7 @@
 				94B36603253B3B0600187E43 /* Products */,
 				94BE0FDD253CBDB500F281ED /* Frameworks */,
 				8346919228C6B14A35B1960C /* Pods */,
+				A10000000000000000000019 /* MidiMapperTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -103,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				94B36602253B3B0600187E43 /* MidiMapper */,
+				A10000000000000000000017 /* MidiMapperTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,9 +172,18 @@
 				9437EB872EF19B1C004B75BF /* CoreAudio.framework */,
 				9437EB852EF19B00004B75BF /* AudioToolbox.framework */,
 				941067B6253EEDAC001CDC32 /* ScriptingBridge.framework */,
-				113E80D6D5FFF86BD712D59D /* libPods-MidiMapper.a */,
+				96EB9829372A77FF63AAAA94 /* libPods-MidiMapperTests.a */,
+				C70F6EE2F67CFD8E3E4D7D06 /* libPods-MidiMapper.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000019 /* MidiMapperTests */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000002 /* MIDIActionsManagerTests.m */,
+			);
+			path = MidiMapperTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +207,23 @@
 			productName = MidiMapper;
 			productReference = 94B36602253B3B0600187E43 /* MidiMapper */;
 			productType = "com.apple.product-type.tool";
+		};
+		A10000000000000000000020 /* MidiMapperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000021 /* Build configuration list for PBXNativeTarget "MidiMapperTests" */;
+			buildPhases = (
+				E6B6DB69D7FAE414FB0C50FA /* [CP] Check Pods Manifest.lock */,
+				A10000000000000000000022 /* Sources */,
+				A10000000000000000000018 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MidiMapperTests;
+			productName = MidiMapperTests;
+			productReference = A10000000000000000000017 /* MidiMapperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -193,6 +255,7 @@
 			projectRoot = "";
 			targets = (
 				94B36601253B3B0600187E43 /* MidiMapper */,
+				A10000000000000000000020 /* MidiMapperTests */,
 			);
 		};
 /* End PBXProject section */
@@ -238,6 +301,28 @@
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\n\n# Check for the \"Install\" build configuration\nif [ \"${CONFIGURATION}\" = \"Release & Install\" ]; then\n    # Paths\n    BUILD_DIR=\"${BUILT_PRODUCTS_DIR}\"\n    EXECUTABLE_PATH=\"${BUILD_DIR}/${EXECUTABLE_NAME}\"\n    DEST_DIR=\"/usr/local/bin\"\n    PLIST_SRC=\"${SRCROOT}/com.nickpeirson.MidiMapper.plist\"\n    PLIST_DEST=\"$HOME/Library/LaunchAgents/com.nickpeirson.MidiMapper.plist\"\n\n    # Copy the executable\n    echo \"Copying executable to ${DEST_DIR}\"\n    cp \"${EXECUTABLE_PATH}\" \"${DEST_DIR}\"\n\n    # Copy the plist file\n    echo \"Copying plist to ${PLIST_DEST}\"\n    cp \"${PLIST_SRC}\" \"${PLIST_DEST}\"\n\n    # Provide feedback\n    echo \"Install complete.\"\nelse\n    echo \"Not an Install build. Skipping install step.\"\nfi\n";
 		};
+		E6B6DB69D7FAE414FB0C50FA /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MidiMapperTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -253,6 +338,20 @@
 				94B36606253B3B0600187E43 /* main.m in Sources */,
 				943B56422C05D7BF00D88264 /* MIDIActionsManager.m in Sources */,
 				9437EB812EF163F2004B75BF /* DedupingLogger.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000022 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* MIDIActionsManagerTests.m in Sources */,
+				A10000000000000000000003 /* MIDIActionsManager.m in Sources */,
+				A10000000000000000000004 /* ActionContext.m in Sources */,
+				A10000000000000000000005 /* DedupingLogger.m in Sources */,
+				A10000000000000000000006 /* SystemVolumeController.m in Sources */,
+				A10000000000000000000007 /* HueAPI.m in Sources */,
+				A10000000000000000000008 /* HueBridgeDiscovery.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,6 +512,36 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000023 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1002C32CEB4B20C7ED79F77 /* Pods-MidiMapperTests.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/MidiMapper",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nickpeirson.MidiMapperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A10000000000000000000024 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 508DCF780DF77D838ADC1A37 /* Pods-MidiMapperTests.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/MidiMapper",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nickpeirson.MidiMapperTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -430,6 +559,15 @@
 			buildConfigurations = (
 				94B3660A253B3B0600187E43 /* Debug */,
 				94B3660B253B3B0600187E43 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000021 /* Build configuration list for PBXNativeTarget "MidiMapperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000023 /* Debug */,
+				A10000000000000000000024 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
