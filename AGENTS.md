@@ -1,36 +1,52 @@
-# MidiMapper project guidance
+# MidiMapper repository guidance
 
-## Repository and layout
+## Scope and authority
 
-- This directory is the Git repository root. Do not run Git commands from its parent directory.
-- Application source is in `MidiMapper/`.
+This file is the execution authority for work in this repository. It defines repository operations, implementation constraints, validation, and completion expectations. ChatGPT Project collaboration and hand-off guidance lives in `docs/chatgpt-project-instructions.md`.
+
+## Repository overview
+
+MidiMapper is a macOS Objective-C application that maps a KORG nanoKONTROL2 MIDI controller to Spotify, system-volume, and Philips Hue actions. The app supports macOS 11 or later.
+
+## Repository structure
+
+- `MidiMapper/` contains the application source.
+- `MidiMapperTests/` contains the XCTest regression suite; it is designed to run without MIDI hardware or the external applications the mapper controls.
 - `MidiMapper.xcworkspace` is the canonical Xcode entry point. Open and build the workspace, not `MidiMapper.xcodeproj` directly.
+- `Podfile` declares CocoaPods dependencies; keep the generated `Podfile.lock` committed for reproducible resolution.
+- `Makefile` defines the supported build, test, install, and operational targets.
+- `com.nickpeirson.MidiMapper.plist` defines the installed LaunchAgent.
 
-## Dependencies and builds
+## Dependency, generated-file, and installation rules
 
 - CocoaPods owns `Pods/`; change dependencies in `Podfile`, then run `pod install`.
-- Keep `Podfile.lock` committed so dependency resolution is reproducible.
-- Use `make build` to build the Release app through the workspace.
-- Use `make install` to build, sign, install, and restart the LaunchAgent. It changes `/usr/local/bin` and the user's LaunchAgents directory.
-- In Codex, CocoaPods/Xcode builds need elevated execution when the restricted sandbox rejects `MidiMapper.xcworkspace` as “not a workspace file”. This is a known false negative caused by Xcode's denied access to macOS services and log locations; it does not mean the workspace is malformed.
-- In that case, rerun the same `make` target or `xcodebuild -workspace` command with elevated execution. Do not validate the build or tests through `MidiMapper.xcodeproj`, manually build Pods, or add custom linker paths. If elevated execution is unavailable, report the workspace verification as unperformed rather than using a project-based substitute.
-
-## Generated and local files
-
 - Do not edit `Pods/`, `build/`, or DerivedData directly.
 - Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
+- `make install` builds, signs, installs, and restarts the LaunchAgent. It changes `/usr/local/bin` and the user's LaunchAgents directory; use it only when that machine-level change is intended.
 
-## Issue implementation workflow
+## Working-tree and issue workflow
 
-- Before modifying files for an issue, create a dedicated branch and linked Git worktree from the current default branch. Do not implement an issue in the primary checkout or in a worktree containing unrelated changes.
-- Keep the issue work isolated. Do not modify, stage, stash, reset, commit, or otherwise disturb unrelated changes in another checkout.
+- Run Git commands from this repository root, not its parent directory.
+- Preserve pre-existing or unrelated changes. Do not modify, stage, stash, reset, commit, or otherwise disturb them.
+- Before modifying files for a GitHub issue, create a dedicated branch and linked Git worktree from the current default branch. Do not implement an issue in the primary checkout or in a worktree containing unrelated changes.
 - Before committing, inspect the staged diff and ensure it contains only changes required by the issue.
-- Treat automated test coverage and passing tests as part of every issue's acceptance criteria. Add or update focused coverage for changed behaviour where practical, and run the relevant test command before integration.
-- Unless the issue or repository guidance explicitly requires review without publication, completing an implementation includes running the required validation, making a focused commit, pushing the branch, merging it into the default branch through the repository's normal workflow, and closing the GitHub issue. Do not stop after local implementation or after merely pushing a branch and wait for a separate instruction.
+
+## Build and test
+
+- Use `make build` to build the Release app through the workspace.
+- Use `make test` to run the hardware-free regression suite through the workspace.
+- Run the relevant automated coverage for changed behaviour; add or update focused tests where practical.
+- In Codex, a restricted-sandbox error that rejects `MidiMapper.xcworkspace` as “not a workspace file” is a known false negative caused by denied access to macOS services and log locations. Rerun the same `make` target or an `xcodebuild -workspace` command with elevated execution. Do not substitute `MidiMapper.xcodeproj`, manually build Pods, or add custom linker paths. If elevated execution is unavailable, report workspace validation as unperformed.
+
+## Documentation changes and GitHub issues
+
+- Update `README.md` when a code change affects supported usage, requirements, installation, or operations.
+- When asked to create an issue, create it in `nickpeirson/MidiMapper` and state the problem, bounded scope, and clear acceptance criteria.
+- This repository has no established architecture-decision record format or location; do not assume one exists.
+
+## Definition of done for issues
+
+- Treat automated coverage and passing relevant tests as acceptance criteria.
+- Unless an issue or repository guidance explicitly requires review without publication, completion includes a focused commit, push, merge into the default branch through the normal repository workflow, and closing the GitHub issue.
+- Do not create extra issues or pull requests merely to document completed work.
 - Leave the issue open and report the precise blocker only when validation fails, publication is not authorised or possible, the branch cannot be merged safely, or a genuine product or technical decision is required.
-
-## GitHub issues
-
-- When asked to create an issue for this project, create it in `nickpeirson/MidiMapper`.
-- State the problem, bounded scope, and clear acceptance criteria.
-- Do not create additional issues or pull requests merely to document completed work. An implementation request authorises the publication and closure steps above.
