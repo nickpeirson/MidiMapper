@@ -9,6 +9,10 @@ target 'MidiMapper' do
   pod 'MIKMIDI'
 end
 
+target 'MidiMapperTests' do
+  inherit! :search_paths
+end
+
 # MIKMIDI's podspec still declares macOS 10.8. Keep all generated Pods targets
 # aligned with the app's supported macOS version to avoid deployment-target warnings.
 post_install do |installer|
