@@ -144,7 +144,7 @@ NSString *const KNOB_DECREMENT = @"1";
         
         [self initMaps];
         
-        NSLog(@"[INIT] MIDIActionsManager initialized");
+        MMLogInfo(@"MIDI", @"MIDIActionsManager initialized");
     }
     return self;
 }
@@ -168,7 +168,7 @@ NSString* byteToStr(UInt8 byte)
         uint64_t start = atomic_load(&actionsStarted);
         uint64_t fin = atomic_load(&actionsFinished);
         
-        NSLog(@"[HEALTH] inFlight=%llu enq=%llu start=%llu fin=%llu",
+        MMLogInfo(@"Action", @"Queue health: inFlight=%llu enq=%llu start=%llu fin=%llu",
               inFlight, enq, start, fin);
         lastHealthLog = now;
     }
@@ -189,7 +189,7 @@ NSString* byteToStr(UInt8 byte)
     atomic_fetch_sub(&actionsInFlight, 1);
     
     if (durationMs > kLongActionThresholdMs) {
-        NSLog(@"[HEALTH] Long action detected: %.1fms (threshold: %.1fms)", durationMs, kLongActionThresholdMs);
+        MMLogWarn(@"Action", @"Long action: %.1fms (threshold %.1fms)", durationMs, kLongActionThresholdMs);
     }
 }
 
@@ -284,7 +284,7 @@ NSString* byteToStr(UInt8 byte)
         // Set cooldown
         NSDate *cooldownUntil = [NSDate dateWithTimeIntervalSinceNow:kBlockingGroupCooldownSeconds];
         blockingGroupCooldownUntil[groupKey] = cooldownUntil;
-        NSLog(@"[BLOCKING] Group '%@' timed out, cooldown until %@", groupKey, cooldownUntil);
+        MMLogWarn(@"Action", @"Group '%@' timed out; cooldown until %@", groupKey, cooldownUntil);
     }
     [blockingStateLock unlock];
 }
@@ -329,7 +329,7 @@ NSString* byteToStr(UInt8 byte)
         dispatch_async(self->actionQueue, ^{
             // Check if token is still valid (not invalidated by completion)
             if (ctx && ctx.timeoutToken != token) {
-                NSLog(@"[TIMEOUT] IGNORE stale timeout eventId=%llu group=%@ token=%llu (current=%llu)",
+                MMLogDebug(@"Action", @"Ignoring stale timeout eventId=%llu group=%@ token=%llu (current=%llu)",
                       eventId, groupKey, token, ctx.timeoutToken);
                 return;
             }
@@ -344,7 +344,7 @@ NSString* byteToStr(UInt8 byte)
         if (ctx) {
             [ctx markStarted];
         }
-        NSLog(@"%@ START action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey);
+        MMLogDebug(@"Action", @"%@ START action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey);
         
         @autoreleasepool {
             actionBlock();
@@ -363,7 +363,7 @@ NSString* byteToStr(UInt8 byte)
         
         if (alreadyTimedOut) {
             // Timeout already handled, just log completion
-            NSLog(@"%@ FINISH_LATE action=%@ duration=%.1fms (after timeout)", 
+            MMLogWarn(@"Action", @"%@ FINISH_LATE action=%@ duration=%.1fms (after timeout)",
                   ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
         } else {
             // Normal completion
@@ -373,7 +373,7 @@ NSString* byteToStr(UInt8 byte)
             if (ctx) {
                 [ctx markFinished];
             }
-            NSLog(@"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+            MMLogDebug(@"Action", @"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
         }
     });
 }
@@ -402,7 +402,7 @@ NSString* byteToStr(UInt8 byte)
         [ctx markTimeout];
     }
     
-    NSLog(@"%@ TIMEOUT action=%@ group=%@ (%.1fs)", 
+    MMLogError(@"Action", @"%@ TIMEOUT action=%@ group=%@ (%.1fs)",
           ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey, kBlockingActionTimeoutSeconds);
 }
 
@@ -570,7 +570,7 @@ NSString* byteToStr(UInt8 byte)
                     dispatch_async(self->actionQueue, ^{
                         // Check if token is still valid
                         if (ctx && ctx.timeoutToken != token) {
-                            NSLog(@"[TIMEOUT] IGNORE stale timeout slider=%@ group=%@ token=%llu (current=%llu)",
+                            MMLogDebug(@"Action", @"Ignoring stale timeout slider=%@ group=%@ token=%llu (current=%llu)",
                                   control, groupKey, token, ctx.timeoutToken);
                             return;
                         }
@@ -630,7 +630,7 @@ NSString* byteToStr(UInt8 byte)
     [self markBlockingGroupFinished:groupKey timedOut:YES];
     [self actionDidFinishWithDuration:kBlockingActionTimeoutSeconds * 1000.0];
     
-    NSLog(@"[slider=%@] TIMEOUT group=%@ (%.1fs)", control, groupKey, kBlockingActionTimeoutSeconds);
+    MMLogError(@"Action", @"[slider=%@] TIMEOUT group=%@ (%.1fs)", control, groupKey, kBlockingActionTimeoutSeconds);
 }
 
 - (void)sliderMovedForControl:(NSString *)control value:(UInt8)value {
@@ -723,7 +723,7 @@ NSString* byteToStr(UInt8 byte)
         [ctx markEnqueued];
     }
     [self actionWillEnqueue];
-    NSLog(@"%@ ENQUEUE action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey ?: @"none");
+    MMLogDebug(@"Action", @"%@ ENQUEUE action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey ?: @"none");
 
     if (groupKey) {
         // Blocking action - use protected execution
@@ -737,7 +737,7 @@ NSString* byteToStr(UInt8 byte)
             if (ctx) {
                 [ctx markStarted];
             }
-            NSLog(@"%@ START action=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName);
+            MMLogDebug(@"Action", @"%@ START action=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName);
             
             @autoreleasepool {
                 action();
@@ -749,7 +749,7 @@ NSString* byteToStr(UInt8 byte)
             if (ctx) {
                 [ctx markFinished];
             }
-            NSLog(@"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+            MMLogDebug(@"Action", @"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
         });
     }
 }
@@ -768,7 +768,7 @@ NSString* byteToStr(UInt8 byte)
                                                             data1:command.dataByte1
                                                             data2:command.dataByte2];
             
-            NSLog(@"%@ RECV %@", [ctx logPrefix], [ctx midiDescription]);
+            MMLogDebug(@"MIDI", @"%@ RECV %@", [ctx logPrefix], [ctx midiDescription]);
             
             NSString *control = byteToStr(command.dataByte1);
             [self mapControlToAction:command forControl:control context:ctx];
@@ -782,7 +782,7 @@ NSString* byteToStr(UInt8 byte)
                                            lsbControllerNumber:command.commandForLeastSignificantBits.controllerNumber
                                            lsbControllerValue:command.commandForLeastSignificantBits.controllerValue];
         
-        NSLog(@"%@ RECV %@", [ctx logPrefix], [ctx midiDescription]);
+        MMLogDebug(@"MIDI", @"%@ RECV %@", [ctx logPrefix], [ctx midiDescription]);
         
         [self setControl:command.commandForMostSignificantBits context:ctx];
         [self mapControlToAction:command.commandForLeastSignificantBits forControl:currentControl context:ctx];
@@ -814,10 +814,10 @@ NSString* byteToStr(UInt8 byte)
     };
     
     knob0Map = @{
-        KNOB_MIN:^() { NSLog(@"Knob1 min"); },
-        KNOB_MAX:^() { NSLog(@"Knob1 max"); },
-        KNOB_INCREMENT:^() { NSLog(@"Knob1 increment"); },
-        KNOB_DECREMENT:^() { NSLog(@"Knob1 decrement"); }
+        KNOB_MIN:^() { MMLogDebug(@"MIDI", @"Knob1 min"); },
+        KNOB_MAX:^() { MMLogDebug(@"MIDI", @"Knob1 max"); },
+        KNOB_INCREMENT:^() { MMLogDebug(@"MIDI", @"Knob1 increment"); },
+        KNOB_DECREMENT:^() { MMLogDebug(@"MIDI", @"Knob1 decrement"); }
     };
 
     controlToActionMap = @{
@@ -889,7 +889,7 @@ NSString* byteToStr(UInt8 byte)
         @"Spotify:PrevTrack": @"spotify",
         @"System:Mute": @"coreaudio",
         @"System:Unmute": @"coreaudio",
-        // Knob actions are non-blocking (just NSLog)
+        // Knob actions are non-blocking.
     };
     
     // Map slider controls to blocking groups

@@ -7,6 +7,7 @@
 //
 
 #import "SystemVolumeController.h"
+#import "DedupingLogger.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 
@@ -112,7 +113,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
             return YES;
         }
         
-        NSLog(@"[SystemVolumeController] VirtualMainVolume set failed with OSStatus=%d, trying per-channel", (int)status);
+        MMLogWarn(@"CoreAudio", @"VirtualMainVolume set failed with OSStatus=%d; trying per-channel", (int)status);
     }
     
     // Fall back to per-channel volume (left/right)
@@ -136,7 +137,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
                 anyChannelSet = YES;
             } else {
                 lastError = status;
-                NSLog(@"[SystemVolumeController] Channel %u volume set failed with OSStatus=%d", (unsigned int)channel, (int)status);
+                MMLogError(@"CoreAudio", @"Channel %u volume set failed with OSStatus=%d", (unsigned int)channel, (int)status);
             }
         }
     }
@@ -185,7 +186,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
             return volume * 100.0f;
         }
         
-        NSLog(@"[SystemVolumeController] VirtualMainVolume get failed with OSStatus=%d, trying per-channel", (int)status);
+        MMLogWarn(@"CoreAudio", @"VirtualMainVolume get failed with OSStatus=%d; trying per-channel", (int)status);
     }
     
     // Fall back to per-channel volume (use left channel as representative)
@@ -254,7 +255,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
             return YES;
         }
         
-        NSLog(@"[SystemVolumeController] Master mute set failed with OSStatus=%d, trying per-channel", (int)status);
+        MMLogWarn(@"CoreAudio", @"Master mute set failed with OSStatus=%d; trying per-channel", (int)status);
     }
     
     // Fall back to per-channel mute
@@ -277,7 +278,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
                 anyChannelSet = YES;
             } else {
                 lastError = status;
-                NSLog(@"[SystemVolumeController] Channel %u mute set failed with OSStatus=%d", (unsigned int)channel, (int)status);
+                MMLogError(@"CoreAudio", @"Channel %u mute set failed with OSStatus=%d", (unsigned int)channel, (int)status);
             }
         }
     }
@@ -355,7 +356,7 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
 #pragma mark - Debug/Test
 
 + (BOOL)runSelfTest {
-    NSLog(@"[SystemVolumeController] === SELF TEST START ===");
+    MMLogInfo(@"CoreAudio", @"=== SELF TEST START ===");
     
     NSError *error = nil;
     BOOL success = YES;
@@ -363,57 +364,57 @@ NSString * const SystemVolumeControllerErrorDomain = @"com.nickpeirson.MidiMappe
     // Step 1: Read current volume
     float originalVolume = [self currentOutputVolumePercent:&error];
     if (originalVolume < 0) {
-        NSLog(@"[SystemVolumeController] FAIL: Could not read current volume: %@", error);
+        MMLogError(@"CoreAudio", @"SELF TEST: Could not read current volume: %@", error);
         return NO;
     }
-    NSLog(@"[SystemVolumeController] Original volume: %.1f%%", originalVolume);
+    MMLogDebug(@"CoreAudio", @"Original volume: %.1f%%", originalVolume);
     
     // Step 2: Read current mute state
     BOOL originalMuted = [self isMuted:&error];
-    NSLog(@"[SystemVolumeController] Original mute state: %@", originalMuted ? @"muted" : @"unmuted");
+    MMLogDebug(@"CoreAudio", @"Original mute state: %@", originalMuted ? @"muted" : @"unmuted");
     
     // Step 3: Set to 20%
     if (![self setOutputVolumePercent:20.0f error:&error]) {
-        NSLog(@"[SystemVolumeController] FAIL: Could not set volume to 20%%: %@", error);
+        MMLogError(@"CoreAudio", @"SELF TEST: Could not set volume to 20%%: %@", error);
         success = NO;
     } else {
-        NSLog(@"[SystemVolumeController] Set volume to 20%%: OK");
+        MMLogDebug(@"CoreAudio", @"Set volume to 20%%: OK");
     }
     
     // Step 4: Read back and verify
     float readBack = [self currentOutputVolumePercent:&error];
     if (readBack < 0) {
-        NSLog(@"[SystemVolumeController] FAIL: Could not read back volume: %@", error);
+        MMLogError(@"CoreAudio", @"SELF TEST: Could not read back volume: %@", error);
         success = NO;
     } else {
-        NSLog(@"[SystemVolumeController] Read back volume: %.1f%%", readBack);
+        MMLogDebug(@"CoreAudio", @"Read back volume: %.1f%%", readBack);
         if (fabsf(readBack - 20.0f) > 2.0f) {
-            NSLog(@"[SystemVolumeController] WARN: Volume read back differs from set value by %.1f%%", fabsf(readBack - 20.0f));
+            MMLogWarn(@"CoreAudio", @"Volume read back differs from set value by %.1f%%", fabsf(readBack - 20.0f));
         }
     }
     
     // Step 5: Test mute
     if (![self setMuted:YES error:&error]) {
-        NSLog(@"[SystemVolumeController] WARN: Could not set mute: %@", error);
+        MMLogWarn(@"CoreAudio", @"Could not set mute: %@", error);
     } else {
-        NSLog(@"[SystemVolumeController] Set mute: OK");
+        MMLogDebug(@"CoreAudio", @"Set mute: OK");
         
         BOOL muted = [self isMuted:&error];
-        NSLog(@"[SystemVolumeController] Read mute state: %@", muted ? @"muted" : @"unmuted");
+        MMLogDebug(@"CoreAudio", @"Read mute state: %@", muted ? @"muted" : @"unmuted");
     }
     
     // Step 6: Restore original state
     if (![self setMuted:originalMuted error:&error]) {
-        NSLog(@"[SystemVolumeController] WARN: Could not restore mute state: %@", error);
+        MMLogWarn(@"CoreAudio", @"Could not restore mute state: %@", error);
     }
     
     if (![self setOutputVolumePercent:originalVolume error:&error]) {
-        NSLog(@"[SystemVolumeController] WARN: Could not restore original volume: %@", error);
+        MMLogWarn(@"CoreAudio", @"Could not restore original volume: %@", error);
     } else {
-        NSLog(@"[SystemVolumeController] Restored original volume: %.1f%%", originalVolume);
+        MMLogDebug(@"CoreAudio", @"Restored original volume: %.1f%%", originalVolume);
     }
     
-    NSLog(@"[SystemVolumeController] === SELF TEST %@ ===", success ? @"PASSED" : @"FAILED");
+    MMLogInfo(@"CoreAudio", @"=== SELF TEST %@ ===", success ? @"PASSED" : @"FAILED");
     
     return success;
 }

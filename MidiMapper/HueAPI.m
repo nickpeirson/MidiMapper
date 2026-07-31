@@ -1,4 +1,5 @@
 #import "HueAPI.h"
+#import "DedupingLogger.h"
 #import "HueBridgeDiscovery.h"
 
 @interface HueAPI () <NSURLSessionDelegate>
@@ -13,7 +14,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        NSLog(@"HueAPI initialized");
+        MMLogInfo(@"Hue", @"HueAPI initialized");
         bridgeDiscovery = [[HueBridgeDiscovery alloc] init];
         [bridgeDiscovery discoverBridge];
     }
@@ -29,7 +30,7 @@
 
     NSString *bridgeIP = [self getBridgeIPAddress];
     if (!bridgeIP) {
-        NSLog(@"Bridge IP address not found.");
+        MMLogError(@"Hue", @"Bridge IP address not found.");
         return;
     }
 
@@ -47,7 +48,7 @@
     NSError *error;
     NSData *bodyData = [NSJSONSerialization dataWithJSONObject:bodyDict options:0 error:&error];
     if (!bodyData) {
-        NSLog(@"Error serializing JSON: %@", error.localizedDescription);
+        MMLogError(@"Hue", @"Error serializing JSON: %@", error.localizedDescription);
         return;
     }
     request.HTTPBody = bodyData;
@@ -62,9 +63,9 @@
     NSURLSessionDataTask *task = [session dataTaskWithRequest:request
                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (error) {
-            NSLog(@"Error setting brightness: %@", error.localizedDescription);
+            MMLogError(@"Hue", @"Error setting brightness: %@", error.localizedDescription);
         } else {
-            NSLog(@"Brightness set to %ld", (long)brightness);
+            MMLogDebug(@"Hue", @"Brightness set to %ld", (long)brightness);
         }
         isRequestInProgress = NO;
         if (pendingBrightness) {

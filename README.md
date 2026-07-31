@@ -28,7 +28,9 @@ The install target changes the local machine and may require permission to write
 
 ```sh
 make status  # Show the LaunchAgent state
-make logs    # Follow the service log
+make logs    # Follow Unified Log output (including debug messages)
 ```
 
-The service log is written to `/tmp/MidiMapper.err`.
+Operational logs are written to macOS Unified Logging with subsystem
+`com.nickpeirson.MidiMapper`. Use `make logs` to follow them, or filter in
+Console by subsystem and category (MIDI, Action, Spotify, Hue, or CoreAudio).
