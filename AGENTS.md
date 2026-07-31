@@ -26,4 +26,5 @@
 - State the problem, bounded scope, and clear acceptance criteria. Do not create an issue or pull request unless asked.
 - When asked to implement an issue, work in a dedicated Git worktree and branch. Do not implement it in the user's active checkout, especially when it has uncommitted changes.
 - Keep the worktree limited to the issue's scope. Before committing, review the diff and stage only the files that implement the issue; never include unrelated changes from another checkout.
-- Unless the user says otherwise, complete an implemented issue by verifying it, committing the scoped changes, pushing the branch, and closing the GitHub issue with a concise implementation summary and the commit or branch reference.
+- Treat automated test coverage and passing tests as part of every issue's acceptance criteria. Add or update focused coverage for changed behaviour where practical, and run the relevant test command before integration.
+- Unless the user says otherwise, complete an implemented issue by verifying it, committing and pushing the scoped changes, merging the completed branch into the primary branch (currently `master`), pushing it, and closing the GitHub issue with a concise implementation summary and the resulting commit reference.
