@@ -18,3 +18,8 @@
 
 - Do not edit `Pods/`, `build/`, or DerivedData directly.
 - Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
+
+## GitHub issues
+
+- When asked to create an issue for this project, create it in `nickpeirson/MidiMapper`.
+- State the problem, bounded scope, and clear acceptance criteria. Do not create an issue or pull request unless asked.

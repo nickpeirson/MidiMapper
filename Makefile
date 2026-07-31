@@ -4,7 +4,8 @@ PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 WORKSPACE := $(PROJECT_ROOT)/MidiMapper.xcworkspace
 SCHEME := MidiMapper (Release)
 CONFIGURATION := Release
-BUILD_DIR := $(PROJECT_ROOT)/build/DerivedData
+BUILD_ROOT := $(PROJECT_ROOT)/build
+BUILD_DIR := $(BUILD_ROOT)/DerivedData
 BINARY := $(BUILD_DIR)/Build/Products/$(CONFIGURATION)/MidiMapper
 
 LAUNCH_AGENT_LABEL := com.nickpeirson.MidiMapper
@@ -53,4 +54,4 @@ logs:
 	tail -f /tmp/MidiMapper.err
 
 clean:
-	rm -rf "$(BUILD_DIR)"
+	rm -rf "$(BUILD_ROOT)"
