@@ -12,7 +12,8 @@
 - Keep `Podfile.lock` committed so dependency resolution is reproducible.
 - Use `make build` to build the Release app through the workspace.
 - Use `make install` to build, sign, install, and restart the LaunchAgent. It changes `/usr/local/bin` and the user's LaunchAgents directory.
-- In Codex, CocoaPods/Xcode builds may need elevated execution: Xcode runs nested sandboxed script phases and writes to DerivedData. Do not work around this by manually building Pods or adding custom linker paths.
+- In Codex, CocoaPods/Xcode builds need elevated execution when the restricted sandbox rejects `MidiMapper.xcworkspace` as “not a workspace file”. This is a known false negative caused by Xcode's denied access to macOS services and log locations; it does not mean the workspace is malformed.
+- In that case, rerun the same `make` target or `xcodebuild -workspace` command with elevated execution. Do not validate the build or tests through `MidiMapper.xcodeproj`, manually build Pods, or add custom linker paths. If elevated execution is unavailable, report the workspace verification as unperformed rather than using a project-based substitute.
 
 ## Generated and local files
 
