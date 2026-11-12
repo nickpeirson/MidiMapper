@@ -14,6 +14,7 @@ USER_ID := $(shell id -u)
 INSTALL_PATH := /usr/local/bin/MidiMapper
 LAUNCH_AGENT_SOURCE := $(PROJECT_ROOT)/com.nickpeirson.MidiMapper.plist
 LAUNCH_AGENT_DEST := $(HOME)/Library/LaunchAgents/com.nickpeirson.midimapper.plist
+LAUNCHCTL := /bin/launchctl
 
 .DEFAULT_GOAL := help
 .PHONY: help pods build test install status logs clean
@@ -29,7 +30,7 @@ help:
 	@echo "  make clean    Remove local build output"
 
 pods:
-	pod install
+	pod install --deployment
 
 build: pods
 	xcodebuild \
@@ -49,16 +50,16 @@ test: pods
 
 install: build
 	@test -x "$(BINARY)"
-	/usr/bin/install -d /usr/local/bin "$(HOME)/Library/LaunchAgents"
+	/usr/bin/install -d "$(dir $(INSTALL_PATH))" "$(dir $(LAUNCH_AGENT_DEST))"
 	/usr/bin/install -m 755 "$(BINARY)" "$(INSTALL_PATH)"
 	/usr/bin/codesign --force --sign - "$(INSTALL_PATH)"
 	/usr/bin/install -m 644 "$(LAUNCH_AGENT_SOURCE)" "$(LAUNCH_AGENT_DEST)"
-	-/bin/launchctl bootout gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
-	/bin/launchctl bootstrap gui/$(USER_ID) "$(LAUNCH_AGENT_DEST)"
-	/bin/launchctl print gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
+	-"$(LAUNCHCTL)" bootout gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
+	"$(LAUNCHCTL)" bootstrap gui/$(USER_ID) "$(LAUNCH_AGENT_DEST)"
+	"$(LAUNCHCTL)" print gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
 
 status:
-	/bin/launchctl print gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
+	"$(LAUNCHCTL)" print gui/$(USER_ID)/$(LAUNCH_AGENT_LABEL)
 
 logs:
 	log stream --style compact --level debug --predicate 'subsystem == "com.nickpeirson.MidiMapper"'

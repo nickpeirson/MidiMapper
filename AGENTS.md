@@ -2,7 +2,7 @@
 
 ## Scope and authority
 
-This file is the execution authority for work in this repository. It defines repository operations, implementation constraints, validation, and completion expectations. ChatGPT Project collaboration and hand-off guidance lives in `docs/chatgpt-project-instructions.md`.
+This file is the authoritative repository guidance for engineering work. Follow the current user instruction and agreed task scope, then this guidance. Verify the current repository, installed service, and GitHub state directly; previous chats provide context rather than evidence. Record durable conclusions in the README, code, or relevant issue.
 
 ## Repository overview
 
@@ -21,13 +21,15 @@ MidiMapper is a macOS Objective-C application that maps a KORG nanoKONTROL2 MIDI
 
 - CocoaPods owns `Pods/`; change dependencies in `Podfile`, then run `pod install`.
 - Do not edit `Pods/`, `build/`, or DerivedData directly.
-- Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
+- Share build schemes under `xcshareddata/xcschemes/`. Do not commit Xcode user data, breakpoints, or `.DS_Store` files.
+- Keep generated builds, diagnostic captures, machine-specific data, and captured executables out of Git.
 - `make install` builds, signs, installs, and restarts the LaunchAgent. It changes `/usr/local/bin` and the user's LaunchAgents directory; use it only when that machine-level change is intended.
 
 ## Working-tree and issue workflow
 
 - Run Git commands from this repository root, not its parent directory.
-- Preserve pre-existing or unrelated changes. Do not modify, stage, stash, reset, commit, or otherwise disturb them.
+- Preserve pre-existing or unrelated changes. Unless the user explicitly requests reconciliation, do not modify, stage, stash, reset, commit, or otherwise disturb them.
+- For reconciliation, compare staged contents and histories first. Archive unique work and evidence outside disposable checkouts before removing workspaces or intermediate patches; never force-push shared history.
 - Before modifying files for a GitHub issue, create a dedicated branch and linked Git worktree from the current default branch. Do not implement an issue in the primary checkout or in a worktree containing unrelated changes.
 - Before committing, inspect the staged diff and ensure it contains only changes required by the issue.
 
@@ -35,6 +37,7 @@ MidiMapper is a macOS Objective-C application that maps a KORG nanoKONTROL2 MIDI
 
 - Use `make build` to build the Release app through the workspace.
 - Use `make test` to run the hardware-free regression suite through the workspace.
+- If a newer SDK rejects macOS 11, pass `XCODEBUILD_ARGS=MACOSX_DEPLOYMENT_TARGET=12.0` consistently to build, test, and install, as documented in the README.
 - Run the relevant automated coverage for changed behaviour; add or update focused tests where practical.
 - In Codex, a restricted-sandbox error that rejects `MidiMapper.xcworkspace` as “not a workspace file” is a known false negative caused by denied access to macOS services and log locations. Rerun the same `make` target or an `xcodebuild -workspace` command with elevated execution. Do not substitute `MidiMapper.xcodeproj`, manually build Pods, or add custom linker paths. If elevated execution is unavailable, report workspace validation as unperformed.
 
@@ -55,3 +58,5 @@ MidiMapper is a macOS Objective-C application that maps a KORG nanoKONTROL2 MIDI
 
 - Preserve live process state, logs, and existing reports before recovery or restart. Review existing diagnostics first.
 - Treat restart as a workaround; trace the cause and continue through a focused fix, tests, Release build, and installation when feasible.
+- Before deleting investigation workspaces, archive significant reports, relevant logs, source/staged patches, and conclusions in a documented local diagnostics directory outside the checkout. Include source revisions and checksums; leave live diagnostic reports intact.
+- After an intended installation, verify the executable and signature, the LaunchAgent plist and label, and the running job. Avoid restarting an already verified service solely for repository housekeeping.

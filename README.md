@@ -7,7 +7,7 @@ It's my first foray into writing code for MacOS, so I suspect there's things tha
 ## Requirements
 
 - macOS 11 or later
-- Xcode command-line tools
+- Xcode (including the macOS SDK) and its command-line tools
 - CocoaPods (`pod`)
 - A KORG nanoKONTROL2
 
@@ -16,11 +16,14 @@ It's my first foray into writing code for MacOS, so I suspect there's things tha
 Run these commands from the repository root:
 
 ```sh
+make test
 make build
 make install
 ```
 
-`make build` installs the locked CocoaPods dependencies and builds the Release executable. `make install` also signs the executable, installs it at `/usr/local/bin/MidiMapper`, and restarts the `com.nickpeirson.MidiMapper` LaunchAgent.
+`make build` installs CocoaPods dependencies in deployment mode using `Podfile.lock` and builds the shared Release scheme. `make install` also signs the executable, installs it at `/usr/local/bin/MidiMapper`, and restarts the `com.nickpeirson.MidiMapper` LaunchAgent. `install.sh` delegates to this same target.
+
+The installed plist is `~/Library/LaunchAgents/com.nickpeirson.midimapper.plist`; its service label remains `com.nickpeirson.MidiMapper`. The tracked source plist uses `MidiMapper` capitalisation. `toggle-midimapper.sh` loads or unloads that same installed job.
 
 The install target changes the local machine and may require permission to write to `/usr/local/bin` and the user's `~/Library/LaunchAgents` directory.
 
@@ -65,8 +68,10 @@ is logged and does not change Spotify execution. The sampler is given a separate
 10-second termination watchdog.
 
 On recurrence, retain the report directory and Unified Log entries for the
-matching event ID before restarting anything. If the failure persists, manually
-sample MidiMapper in Activity Monitor as well. The instrumented build adds no
+matching event ID before restarting anything. Archive significant evidence and
+a short conclusion outside disposable checkouts (for example in a sibling
+`diagnostics/` directory); keep logs, captured executables, and local paths out
+of Git. If the failure persists, manually sample MidiMapper in Activity Monitor as well. The instrumented build adds no
 automatic recovery.
 
 ## Running a build temporarily
@@ -83,5 +88,6 @@ permission; success in Script Editor does not establish that permission.
 
 If the active Xcode SDK rejects the saved macOS 11 deployment target, build and
 test locally with `make build XCODEBUILD_ARGS=MACOSX_DEPLOYMENT_TARGET=12.0` and
-`make test XCODEBUILD_ARGS=MACOSX_DEPLOYMENT_TARGET=12.0`. This override applies to
-the local artifacts and does not change the project's deployment settings.
+`make test XCODEBUILD_ARGS=MACOSX_DEPLOYMENT_TARGET=12.0`; use the same override
+with `make install`. This override applies to the local artifacts and does not
+change the project's deployment settings.

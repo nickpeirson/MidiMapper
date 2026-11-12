@@ -1,24 +1,14 @@
-#!/usr/local/bin/bash
+#!/bin/bash
+set -euo pipefail
 
-# Define the plist path and label
-PLIST_PATH="$HOME/Library/LaunchAgents/com.nickpeirson.MidiMapper.plist"
+PLIST_PATH="$HOME/Library/LaunchAgents/com.nickpeirson.midimapper.plist"
 LABEL="com.nickpeirson.MidiMapper"
+SERVICE="gui/$(id -u)/$LABEL"
 
-# Check if the service is loaded
-if launchctl list | grep -q "$LABEL"; then
-    echo "MidiMapper is currently loaded. Unloading..."
-    launchctl unload "$PLIST_PATH"
-    if [ $? -eq 0 ]; then
-        echo "MidiMapper unloaded successfully."
-    else
-        echo "Failed to unload MidiMapper."
-    fi
+if /bin/launchctl print "$SERVICE" >/dev/null 2>&1; then
+    /bin/launchctl bootout "$SERVICE"
+    echo "MidiMapper unloaded."
 else
-    echo "MidiMapper is currently unloaded. Loading..."
-    launchctl load "$PLIST_PATH"
-    if [ $? -eq 0 ]; then
-        echo "MidiMapper loaded successfully."
-    else
-        echo "Failed to load MidiMapper."
-    fi
+    /bin/launchctl bootstrap "gui/$(id -u)" "$PLIST_PATH"
+    echo "MidiMapper loaded."
 fi

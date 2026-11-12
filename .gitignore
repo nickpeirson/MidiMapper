@@ -7,3 +7,9 @@ DerivedData/
 
 # CocoaPods
 Pods/
+
+# Local diagnostics and test reports
+/investigation-evidence/
+/diagnostics/
+*.log
+*.xcresult/
