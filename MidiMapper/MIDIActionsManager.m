@@ -12,6 +12,7 @@
 #import "DedupingLogger.h"
 #import "ActionContext.h"
 #import "SystemVolumeController.h"
+#import "SpotifyDiagnostics.h"
 #import <Carbon/Carbon.h>   // for kAENoReply, etc.
 #import <stdatomic.h>
 
@@ -72,6 +73,7 @@ NSString *const KNOB_DECREMENT = @"1";
     NSString *currentControl;
     UInt8 currentControlId;
     SpotifyApplication *spotifyApp;
+    SpotifyDiagnostics *spotifyDiagnostics;
     HueAPI *hueAPI;
     dispatch_queue_t actionQueue;   // serial queue for bookkeeping and coordination
     dispatch_queue_t blockingActionQueue;  // concurrent queue for potentially blocking actions
@@ -105,7 +107,9 @@ NSString *const KNOB_DECREMENT = @"1";
     self = [super init];
     if (self) {
         if (useExternalBackends) {
+            spotifyDiagnostics = [[SpotifyDiagnostics alloc] init];
             spotifyApp = [SBApplication applicationWithBundleIdentifier:@"com.spotify.client"];
+            spotifyApp.delegate = spotifyDiagnostics;
             hueAPI = [[HueAPI alloc] init];
         }
         
@@ -315,7 +319,7 @@ NSString* byteToStr(UInt8 byte)
                      context:(ActionContext *)ctx {
     
     uint64_t eventId = ctx ? ctx.eventId : 0;
-    NSDate *startTime = [NSDate date];
+    double startTime = MMMonotonicSeconds();
     
     // Mark group as in-flight
     [self markBlockingGroupInFlight:groupKey];
@@ -347,10 +351,14 @@ NSString* byteToStr(UInt8 byte)
         MMLogDebug(@"Action", @"%@ START action=%@ group=%@", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, groupKey);
         
         @autoreleasepool {
-            actionBlock();
+            if ([groupKey isEqualToString:@"spotify"] && self->spotifyDiagnostics) {
+                [self->spotifyDiagnostics observeAction:actionBlock context:ctx];
+            } else {
+                actionBlock();
+            }
         }
         
-        NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+        NSTimeInterval durationMs = (MMMonotonicSeconds() - startTime) * 1000.0;
         
         // Invalidate the scheduled timeout by bumping the token
         if (ctx) {
@@ -373,7 +381,11 @@ NSString* byteToStr(UInt8 byte)
             if (ctx) {
                 [ctx markFinished];
             }
-            MMLogDebug(@"Action", @"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+            if ([groupKey isEqualToString:@"spotify"]) {
+                MMLogDebug(@"Action", @"%@ RETURNED action=%@ duration=%.1fms playbackVerified=NO", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+            } else {
+                MMLogDebug(@"Action", @"%@ FINISH action=%@ duration=%.1fms", ctx ? [ctx logPrefix] : @"[ev=?]", actionName, durationMs);
+            }
         }
     });
 }
@@ -580,13 +592,19 @@ NSString* byteToStr(UInt8 byte)
                 
                 dispatch_async(self->blockingActionQueue, ^{
                     [self actionDidStart];
-                    NSDate *startTime = [NSDate date];
+                    double startTime = MMMonotonicSeconds();
                     
                     @autoreleasepool {
-                        sliderAction(val);
+                        if ([groupKey isEqualToString:@"spotify"] && self->spotifyDiagnostics) {
+                            ActionContext *spotifyContext = ctx ?: [ActionContext contextWithStatus:0 data1:0 data2:0];
+                            spotifyContext.matchedActionName = actionName;
+                            [self->spotifyDiagnostics observeAction:^{ sliderAction(val); } context:spotifyContext];
+                        } else {
+                            sliderAction(val);
+                        }
                     }
                     
-                    NSTimeInterval durationMs = [[NSDate date] timeIntervalSinceDate:startTime] * 1000.0;
+                    NSTimeInterval durationMs = (MMMonotonicSeconds() - startTime) * 1000.0;
                     
                     // Invalidate the scheduled timeout by bumping the token
                     if (ctx) {

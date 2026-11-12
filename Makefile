@@ -4,6 +4,7 @@ PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 WORKSPACE := $(PROJECT_ROOT)/MidiMapper.xcworkspace
 SCHEME := MidiMapper (Release)
 CONFIGURATION := Release
+XCODEBUILD_ARGS ?=
 BUILD_ROOT := $(PROJECT_ROOT)/build
 BUILD_DIR := $(BUILD_ROOT)/DerivedData
 BINARY := $(BUILD_DIR)/Build/Products/$(CONFIGURATION)/MidiMapper
@@ -12,7 +13,7 @@ LAUNCH_AGENT_LABEL := com.nickpeirson.MidiMapper
 USER_ID := $(shell id -u)
 INSTALL_PATH := /usr/local/bin/MidiMapper
 LAUNCH_AGENT_SOURCE := $(PROJECT_ROOT)/com.nickpeirson.MidiMapper.plist
-LAUNCH_AGENT_DEST := $(HOME)/Library/LaunchAgents/$(LAUNCH_AGENT_LABEL).plist
+LAUNCH_AGENT_DEST := $(HOME)/Library/LaunchAgents/com.nickpeirson.midimapper.plist
 
 .DEFAULT_GOAL := help
 .PHONY: help pods build test install status logs clean
@@ -36,7 +37,7 @@ build: pods
 		-scheme "$(SCHEME)" \
 		-configuration "$(CONFIGURATION)" \
 		-derivedDataPath "$(BUILD_DIR)" \
-		build CODE_SIGNING_ALLOWED=NO
+		build CODE_SIGNING_ALLOWED=NO $(XCODEBUILD_ARGS)
 
 test: pods
 	xcodebuild \
@@ -44,7 +45,7 @@ test: pods
 		-scheme "MidiMapperTests" \
 		-configuration Debug \
 		-derivedDataPath "$(BUILD_DIR)" \
-		test CODE_SIGNING_ALLOWED=NO
+		test CODE_SIGNING_ALLOWED=NO $(XCODEBUILD_ARGS)
 
 install: build
 	@test -x "$(BINARY)"

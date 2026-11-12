@@ -50,3 +50,8 @@ MidiMapper is a macOS Objective-C application that maps a KORG nanoKONTROL2 MIDI
 - Unless an issue or repository guidance explicitly requires review without publication, completion includes a focused commit, push, merge into the default branch through the normal repository workflow, and closing the GitHub issue.
 - Do not create extra issues or pull requests merely to document completed work.
 - Leave the issue open and report the precise blocker only when validation fails, publication is not authorised or possible, the branch cannot be merged safely, or a genuine product or technical decision is required.
+
+## Incident investigations
+
+- Preserve live process state, logs, and existing reports before recovery or restart. Review existing diagnostics first.
+- Treat restart as a workaround; trace the cause and continue through a focused fix, tests, Release build, and installation when feasible.
